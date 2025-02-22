@@ -1,35 +1,46 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
+import yahooFinance from "yahoo-finance2";
 import dotenv from "dotenv";
 
 dotenv.config();
+// Suppress deprecated warning
+yahooFinance.suppressNotices(['ripHistorical']);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    methods: ['GET'],
+    credentials: true
+}));
 app.use(express.json());
 
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-
-app.get("/api/stocks/:symbol", async (req, res) => {
+app.get("/api/sp500/history", async (req, res) => {
     try {
-        const symbol = req.params.symbol.toUpperCase();
-        const response = await fetch(
-            `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`
-        );
-        const data = await response.json();
-        res.json({
-            symbol,
-            price: data.c,
-            high: data.h,
-            low: data.l,
-            open: data.o,
-            prevClose: data.pc
-        });
+        const queryOptions = {
+            period1: new Date('1950-01-01'),
+            period2: new Date(),
+            interval: '1d',
+            includeAdjustedClose: true
+        };
+        
+        console.log('Fetching S&P 500 historical data...');
+        const result = await yahooFinance.chart('^GSPC', queryOptions);
+        
+        const historicalData = result.quotes.map(item => ({
+            date: item.date,
+            close: item.close,
+            high: item.high,
+            low: item.low,
+            volume: item.volume
+        }));
+        
+        res.json(historicalData);
     } catch (error) {
-        res.status(500).json({ error: "Error fetching stock data" });
+        console.error('Error:', error);
+        res.status(500).json({ error: error.message || "Error fetching S&P 500 data" });
     }
 });
 
