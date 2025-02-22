@@ -1,8 +1,11 @@
 {
-  "name": "backend",
+  "name": "portfolio-simulator-backend",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
+    "start": "node src/index.mjs",
+    "dev": "nodemon src/index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,8 +14,11 @@
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "yahoo-finance2": "^2.13.3"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "yahoo-finance2": "^2.9.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }
