@@ -7,20 +7,26 @@ dotenv.config();
 yahooFinance.suppressNotices(['ripHistorical']);
 
 const ASSETS = {
-    'SP500': '^SP500TR',  // S&P 500 Total Return Index
-    'NASDAQ': '^NDX',  // NASDAQ 100 Index
-    'DOW_JONES': '^DJI',  // Dow Jones Industrial Average
-    'GOLD': 'GLD',  // Changed from GC=F to GLD (SPDR Gold Shares ETF)
-    'BITCOIN': 'BTC-USD',  // Bitcoin
-    'OIL': 'CL=F',  // Crude Oil Futures
-    'EUR_USD': 'EURUSD=X',  // EUR/USD Exchange Rate
-    'USD_JPY': 'USDJPY=X',  // USD/JPY Exchange Rate
-    'GBP_USD': 'GBPUSD=X',  // GBP/USD Exchange Rate
-    'VIX': '^VIX',  // CBOE Volatility Index
-    'FTSE100': '^FTSE',  // FTSE 100 Index
-    'MSCI_WORLD': '^990100-USD-STRD',  // MSCI World Index ETF
-    'EURO_STOCKS': '^STOXX50E',  // EURO STOXX 50
-    'US_10Y_BONDS': '^TNX'  // 10-Year Treasury Yield
+    'SP500': {
+        symbols: ['^GSPC', 'SPY'],  // S&P 500 Index and ETF
+        name: 'S&P 500'
+    },
+    'MSCI_WORLD': {
+        symbols: ['IWDA.AS'],  // Multiple MSCI World ETFs
+        name: 'MSCI World'
+    },
+    'EURO_STOCKS': {
+        symbols: ['FEZ', '^STOXX50E'],  // EURO STOXX 50 ETF and Index
+        name: 'Euro Stoxx 50'
+    },
+    'GOLD': {
+        symbols: ['GLD', 'IAU'],  // Gold ETFs
+        name: 'Gold'
+    },
+    'US_10Y_BONDS': {
+        symbols: ['IEF', '^TNX'],  // Treasury ETF and Yield
+        name: '10-Year Treasury'
+    }
 };
 
 const app = express();
@@ -47,20 +53,71 @@ const getAssetFirstDate = async (symbol) => {
     }
 };
 
+const getAssetFullInfo = async (symbol) => {
+    try {
+        const result = await yahooFinance.chart(symbol, {
+            period1: new Date('1900-01-01'),
+            period2: new Date(),
+            interval: '1mo'
+        });
+        const firstDate = result.quotes[0]?.date || null;
+        const yearsOfData = firstDate ? 
+            ((new Date() - new Date(firstDate)) / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1) : 
+            0;
+        
+        return {
+            firstDate,
+            yearsOfData: Number(yearsOfData),
+            dataPoints: result.quotes.length
+        };
+    } catch (error) {
+        console.error(`Error fetching info for ${symbol}:`, error);
+        return { firstDate: null, yearsOfData: 0, dataPoints: 0 };
+    }
+};
+
+const getAssetBestData = async (symbols) => {
+    for (const symbol of symbols) {
+        try {
+            console.log(`Trying symbol: ${symbol}`);
+            const result = await yahooFinance.chart(symbol, {
+                period1: '1950-01-01',
+                period2: new Date().toISOString().split('T')[0],
+                interval: '1d'
+            });
+
+            if (result && result.quotes && result.quotes.length > 0) {
+                console.log(`Successfully fetched data for ${symbol}`);
+                return result;
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data for symbol ${symbol}:`, error);
+            continue;
+        }
+    }
+    throw new Error('No valid data found for any symbol');
+};
+
 app.get("/api/assets", async (req, res) => {
     try {
-        const assetsWithDates = await Promise.all(
-            Object.entries(ASSETS).map(async ([key, symbol]) => {
-                const firstDate = await getAssetFirstDate(symbol);
+        const assetsWithInfo = await Promise.all(
+            Object.entries(ASSETS).map(async ([key, asset]) => {
+                const info = await getAssetFullInfo(asset.symbols[0]);
                 return {
                     id: key,
-                    name: key.replace(/_/g, ' '),
-                    firstAvailableDate: firstDate,
-                    symbol
+                    name: asset.name,
+                    symbol: asset.symbols[0],
+                    firstAvailableDate: info.firstDate,
+                    yearsOfData: info.yearsOfData,
+                    dataPoints: info.dataPoints
                 };
             })
         );
-        res.json(assetsWithDates);
+
+        // Sort assets by years of data available
+        const sortedAssets = assetsWithInfo.sort((a, b) => b.yearsOfData - a.yearsOfData);
+        
+        res.json(sortedAssets);
     } catch (error) {
         console.error('Error fetching assets data:', error);
         res.status(500).json({ error: 'Failed to fetch assets information' });
@@ -71,21 +128,13 @@ app.get("/api/assets", async (req, res) => {
 app.get("/api/asset/:assetId/history", async (req, res) => {
     try {
         const { assetId } = req.params;
-        const symbol = ASSETS[assetId];
+        const asset = ASSETS[assetId];
 
-        if (!symbol) {
+        if (!asset) {
             return res.status(400).json({ error: "Invalid asset ID" });
         }
 
-        const queryOptions = {
-            period1: new Date('1950-01-01'),
-            period2: new Date(),
-            interval: '1d',
-            includeAdjustedClose: true
-        };
-        
-        console.log(`Fetching ${assetId} historical data...`);
-        const result = await yahooFinance.chart(symbol, queryOptions);
+        const result = await getAssetBestData(asset.symbols);
         
         const historicalData = result.quotes
             .filter(item => 
