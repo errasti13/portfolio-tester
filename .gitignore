@@ -1,0 +1,34 @@
+# Ignore everything by default
+*
+*/*
+
+# Allow code files
+!.gitignore
+!*.js
+!*.jsx
+!*.ts
+!*.tsx
+!*.json
+!*.html
+!*.css
+!*.md
+!*.mjs
+
+# Allow specific directories
+!frontend/
+!frontend/src/
+!frontend/public/
+!backend/
+!backend/src/
+
+# Still ignore node_modules everywhere
+node_modules/
+**/node_modules/
+
+# Still ignore environment files
+.env*
+*.env
+
+# Still ignore build outputs
+dist/
+build/
