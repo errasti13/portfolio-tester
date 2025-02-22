@@ -33,12 +33,38 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// New endpoint to get available assets
-app.get("/api/assets", (req, res) => {
-    res.json(Object.keys(ASSETS).map(key => ({
-        id: key,
-        name: key.replace(/_/g, ' ')
-    })));
+const getAssetFirstDate = async (symbol) => {
+    try {
+        const result = await yahooFinance.chart(symbol, {
+            period1: new Date('1900-01-01'),
+            period2: new Date(),
+            interval: '1mo'
+        });
+        return result.quotes[0]?.date || null;
+    } catch (error) {
+        console.error(`Error fetching first date for ${symbol}:`, error);
+        return null;
+    }
+};
+
+app.get("/api/assets", async (req, res) => {
+    try {
+        const assetsWithDates = await Promise.all(
+            Object.entries(ASSETS).map(async ([key, symbol]) => {
+                const firstDate = await getAssetFirstDate(symbol);
+                return {
+                    id: key,
+                    name: key.replace(/_/g, ' '),
+                    firstAvailableDate: firstDate,
+                    symbol
+                };
+            })
+        );
+        res.json(assetsWithDates);
+    } catch (error) {
+        console.error('Error fetching assets data:', error);
+        res.status(500).json({ error: 'Failed to fetch assets information' });
+    }
 });
 
 // Modified endpoint to fetch specific asset history

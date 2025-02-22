@@ -15,6 +15,7 @@ function App() {
         { assetId: 'SP500', allocation: 100 }
     ]);
     const [portfolioData, setPortfolioData] = useState({});
+    const [assetWarnings, setAssetWarnings] = useState({});
 
     useEffect(() => {
         const fetchAssets = async () => {
@@ -109,30 +110,42 @@ function App() {
                     {error && <div className="error-message">{error}</div>}
                     {portfolio.map((asset, index) => (
                         <div key={index} className="asset-allocation">
-                            <select 
-                                value={asset.assetId}
-                                onChange={(e) => {
-                                    const updated = [...portfolio];
-                                    updated[index].assetId = e.target.value;
-                                    setPortfolio(updated);
-                                }}
-                            >
-                                {assets.map(a => (
-                                    <option key={a.id} value={a.id}>{a.name}</option>
-                                ))}
-                            </select>
-                            <input
-                                type="number"
-                                value={asset.allocation}
-                                onChange={(e) => handleAllocationChange(index, e.target.value)}
-                                min="0"
-                                max="100"
-                                step="5"
-                            />
-                            <span>%</span>
-                            {portfolio.length > 1 && (
-                                <button onClick={() => removeAsset(index)}>Remove</button>
-                            )}
+                            <div className="asset-selector">
+                                <select 
+                                    value={asset.assetId}
+                                    onChange={(e) => {
+                                        const updated = [...portfolio];
+                                        updated[index].assetId = e.target.value;
+                                        setPortfolio(updated);
+                                    }}
+                                >
+                                    {assets.map(a => (
+                                        <option key={a.id} value={a.id}>{a.name}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="number"
+                                    value={asset.allocation}
+                                    onChange={(e) => handleAllocationChange(index, e.target.value)}
+                                    min="0"
+                                    max="100"
+                                    step="5"
+                                />
+                                <span>%</span>
+                                {portfolio.length > 1 && (
+                                    <button onClick={() => removeAsset(index)}>Remove</button>
+                                )}
+                            </div>
+                            <div className="asset-warning" style={{
+                                fontSize: '0.8em',
+                                color: '#666',
+                                marginTop: '4px',
+                                fontStyle: 'italic'
+                            }}>
+                                {assets.find(a => a.id === asset.assetId)?.firstAvailableDate && (
+                                    `Data available from: ${new Date(assets.find(a => a.id === asset.assetId).firstAvailableDate).getFullYear()}`
+                                )}
+                            </div>
                         </div>
                     ))}
                     {portfolio.length < 5 && (
