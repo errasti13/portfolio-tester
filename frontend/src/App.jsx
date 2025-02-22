@@ -1,26 +1,6 @@
 import { useState, useEffect } from "react";
-import { Line } from 'react-chartjs-2';
 import { runSimulations } from './utils/simulationUtils';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-} from 'chart.js';
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-);
+import EnhancedChart from './components/EnhancedChart';
 
 function App() {
     const [error, setError] = useState(null);
@@ -57,81 +37,12 @@ function App() {
         setShowSimulation(true);
     };
 
-    const combinedChartData = {
-        labels: showSimulation && simulationResults 
-            ? simulationResults.best.data.map(day => new Date(day.date).toLocaleDateString())
-            : (sp500Data ? sp500Data.map(day => new Date(day.date).toLocaleDateString()) : []),
-        datasets: showSimulation && simulationResults ? [
-            {
-                label: 'Best Case Portfolio Value',
-                data: simulationResults.best.data.map(day => day.value),
-                borderColor: 'rgb(75, 192, 75)',
-                tension: 0.1
-            },
-            {
-                label: 'Worst Case Portfolio Value',
-                data: simulationResults.worst.data.map(day => day.value),
-                borderColor: 'rgb(192, 75, 75)',
-                tension: 0.1
-            },
-            {
-                label: 'Median Case Portfolio Value',
-                data: simulationResults.median.data.map(day => day.value),
-                borderColor: 'rgb(75, 75, 192)',
-                tension: 0.1
-            }
-        ] : [
-            {
-                label: 'S&P 500 Index',
-                data: sp500Data ? sp500Data.map(day => day.close) : [],
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }
-        ]
-    };
-
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top',
-            },
-            title: {
-                display: true,
-                text: 'S&P 500 Historical Trend'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: false
-            }
-        }
-    };
-
     return (
         <div style={{ textAlign: "center", marginTop: "50px" }}>
-            <h1>S&P 500 Historical Analysis</h1>
+            <h1>S&P 500 Investment Simulator</h1>
             
-            {/* Main Chart Section */}
-            <div className="sp500-section">
-                <h2>{showSimulation ? 'Simulation Results' : 'Historical Data'}</h2>
-                <div className="chart-container" style={{ marginBottom: '40px' }}>
-                    <Line data={combinedChartData} options={chartOptions} />
-                    {showSimulation && (
-                        <button 
-                            onClick={() => setShowSimulation(false)}
-                            style={{ marginTop: '10px' }}
-                        >
-                            Back to Historical View
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Updated Simulation Controls */}
-            <div className="simulation-section">
-                <h2>Investment Simulator</h2>
+            {/* Simulation Controls */}
+            <div className="simulation-section" style={{ borderTop: 'none' }}>
                 <div className="simulation-controls">
                     <div className="control-group">
                         <label>Initial Investment ($):</label>
@@ -175,44 +86,81 @@ function App() {
                     </div>
                     <button onClick={runSimulation}>Run Simulation</button>
                 </div>
-                
-                {simulationResults && showSimulation && (
-                    <div className="results-summary">
-                        <h3>Simulation Results</h3>
-                        <div className="investment-summary">
-                            <h4>Investment Summary</h4>
-                            <p>Initial Investment: ${initialInvestment.toLocaleString()}</p>
-                            <p>Periodic Investment: ${periodicInvestment.toLocaleString()} ({investmentFrequency})</p>
-                            <p>Investment Period: {simulationYears} years</p>
-                            <p>Total Amount Invested: ${simulationResults.best.totalInvested.toLocaleString()}</p>
-                        </div>
-                        
-                        <div className="scenarios">
-                            <div className="best-case">
-                                <h4>Best Case Scenario:</h4>
-                                <ul>
-                                    <li>Total Return: {simulationResults.best.return.toFixed(2)}%</li>
-                                    <li>Annualized Return: {simulationResults.best.annualizedReturn.toFixed(2)}%</li>
-                                    <li>Final Portfolio Value: ${simulationResults.best.finalValue.toLocaleString()}</li>
-                                    <li>Net Profit: ${(simulationResults.best.finalValue - simulationResults.best.totalInvested).toLocaleString()}</li>
-                                    <li>Period: {simulationResults.best.startDate.toLocaleDateString()} - {simulationResults.best.endDate.toLocaleDateString()}</li>
-                                </ul>
-                            </div>
-                            
-                            <div className="worst-case">
-                                <h4>Worst Case Scenario:</h4>
-                                <ul>
-                                    <li>Total Return: {simulationResults.worst.return.toFixed(2)}%</li>
-                                    <li>Annualized Return: {simulationResults.worst.annualizedReturn.toFixed(2)}%</li>
-                                    <li>Final Portfolio Value: ${simulationResults.worst.finalValue.toLocaleString()}</li>
-                                    <li>Net Profit: ${(simulationResults.worst.finalValue - simulationResults.worst.totalInvested).toLocaleString()}</li>
-                                    <li>Period: {simulationResults.worst.startDate.toLocaleDateString()} - {simulationResults.worst.endDate.toLocaleDateString()}</li>
-                                </ul>
-                            </div>
+            </div>
+
+            {/* Chart Section */}
+            {simulationResults && (
+                <div className="sp500-section" style={{ margin: '2rem auto', maxWidth: '1200px' }}>
+                    <h2>Simulation Results</h2>
+                    <EnhancedChart simulationResults={simulationResults} />
+                </div>
+            )}
+
+            {/* Results Section */}
+            {simulationResults && showSimulation && (
+                <div className="results-summary">
+                    <h3>Simulation Results</h3>
+                    <div className="investment-summary">
+                        <h4>📊 Investment Parameters</h4>
+                        <div className="parameters-grid">
+                            <p><span className="label">Initial Investment:</span> <span className="value">${initialInvestment.toLocaleString()}</span></p>
+                            <p><span className="label">Periodic Investment:</span> <span className="value">${periodicInvestment.toLocaleString()} ({investmentFrequency})</span></p>
+                            <p><span className="label">Investment Period:</span> <span className="value">{simulationYears} years</span></p>
+                            <p><span className="label">Total Amount Invested:</span> <span className="value">${simulationResults.best.totalInvested.toLocaleString()}</span></p>
                         </div>
                     </div>
-                )}
-            </div>
+                    
+                    <div className="scenarios">
+                        <div className="best-case">
+                            <h4>Best Case Scenario</h4>
+                            <ul>
+                                <li>
+                                    <span className="label">Total Return</span>
+                                    <span className="value">{simulationResults.best.return.toFixed(2)}%</span>
+                                </li>
+                                <li>
+                                    <span className="label">Annualized Return</span>
+                                    <span className="value">{simulationResults.best.annualizedReturn.toFixed(2)}%</span>
+                                </li>
+                                <li>
+                                    <span className="label">Final Value</span>
+                                    <span className="value">${simulationResults.best.finalValue.toLocaleString()}</span>
+                                </li>
+                                <li>
+                                    <span className="label">Net Profit</span>
+                                    <span className="value">${(simulationResults.best.finalValue - simulationResults.best.totalInvested).toLocaleString()}</span>
+                                </li>
+                                <li>
+                                    <span className="label">Period</span>
+                                    <span className="value">{simulationResults.best.startDate.toLocaleDateString()} - {simulationResults.best.endDate.toLocaleDateString()}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div className="median-case">
+                            <h4>Median Case Scenario:</h4>
+                            <ul>
+                                <li>Total Return: {simulationResults.median.return.toFixed(2)}%</li>
+                                <li>Annualized Return: {simulationResults.median.annualizedReturn.toFixed(2)}%</li>
+                                <li>Final Portfolio Value: ${simulationResults.median.finalValue.toLocaleString()}</li>
+                                <li>Net Profit: ${(simulationResults.median.finalValue - simulationResults.median.totalInvested).toLocaleString()}</li>
+                                <li>Period: {simulationResults.median.startDate.toLocaleDateString()} - {simulationResults.median.endDate.toLocaleDateString()}</li>
+                            </ul>
+                        </div>
+                        
+                        <div className="worst-case">
+                            <h4>Worst Case Scenario:</h4>
+                            <ul>
+                                <li>Total Return: {simulationResults.worst.return.toFixed(2)}%</li>
+                                <li>Annualized Return: {simulationResults.worst.annualizedReturn.toFixed(2)}%</li>
+                                <li>Final Portfolio Value: ${simulationResults.worst.finalValue.toLocaleString()}</li>
+                                <li>Net Profit: ${(simulationResults.worst.finalValue - simulationResults.worst.totalInvested).toLocaleString()}</li>
+                                <li>Period: {simulationResults.worst.startDate.toLocaleDateString()} - {simulationResults.worst.endDate.toLocaleDateString()}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
