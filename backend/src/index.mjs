@@ -8,7 +8,7 @@ yahooFinance.suppressNotices(['ripHistorical']);
 
 const ASSETS = {
     'SP500': {
-        symbols: ['^GSPC'],  // S&P 500 Index and ETF
+        symbols: ['^SP500TR'],  // S&P 500 Index and ETF
         name: 'S&P 500'
     },
     'MSCI_WORLD': {
@@ -160,6 +160,20 @@ app.get("/api/asset/:assetId/history", async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ error: error.message || `Error fetching ${assetId} data` });
     }
+});
+
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1); // Optional: exit the process to avoid unknown state
 });
 
 app.listen(PORT, () => {
