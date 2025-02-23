@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, Typography, Box } from '@mui/material';
 
 const EnhancedChart = ({ simulationResults }) => {
     if (!simulationResults) return null;
@@ -36,59 +37,68 @@ const EnhancedChart = ({ simulationResults }) => {
     };
 
     return (
-        <div style={{ width: '100%', height: '400px' }}>
-            <ResponsiveContainer>
-                <LineChart
-                    data={data}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                        dataKey="year" 
-                        label={{ 
-                            value: 'Years', 
-                            position: 'insideBottom', 
-                            offset: -5 
-                        }}
-                        tickFormatter={(value) => Math.floor(value)}
-                    />
-                    <YAxis 
-                        tickFormatter={formatYAxis}
-                        label={{ 
-                            value: 'Portfolio Value', 
-                            angle: -90, 
-                            position: 'insideLeft'
-                        }}
-                    />
-                    <Tooltip 
-                        formatter={formatTooltip}
-                        labelFormatter={(label) => `Month ${label}`}
-                    />
-                    <Legend />
-                    <Line 
-                        type="monotone" 
-                        dataKey="Best" 
-                        stroke="#4CAF50" 
-                        dot={false} 
-                        strokeWidth={2}
-                    />
-                    <Line 
-                        type="monotone" 
-                        dataKey="Median" 
-                        stroke="#2196F3" 
-                        dot={false} 
-                        strokeWidth={2}
-                    />
-                    <Line 
-                        type="monotone" 
-                        dataKey="Worst" 
-                        stroke="#F44336" 
-                        dot={false} 
-                        strokeWidth={2}
-                    />
-                </LineChart>
-            </ResponsiveContainer>
-        </div>
+        <Card sx={{ p: 3, borderRadius: 2, boxShadow: 4, bgcolor: '#1e1e1e', color: '#ffffff' }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
+                Portfolio Simulation
+            </Typography>
+            <Box sx={{ width: '100%', height: 400 }}>
+                <ResponsiveContainer>
+                    <LineChart
+                        data={data}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                        <XAxis 
+                            dataKey="year" 
+                            label={{ 
+                                value: 'Years', 
+                                position: 'insideBottom', 
+                                offset: -5, 
+                                fill: '#ffffff' 
+                            }}
+                            tick={{ fill: '#ffffff' }}
+                        />
+                        <YAxis 
+                            tickFormatter={formatYAxis}
+                            label={{ 
+                                value: 'Portfolio Value', 
+                                angle: -90, 
+                                position: 'insideLeft', 
+                                fill: '#ffffff' 
+                            }}
+                            tick={{ fill: '#ffffff' }}
+                        />
+                        <Tooltip 
+                            formatter={formatTooltip}
+                            labelFormatter={(label) => `Year ${label}`}
+                            contentStyle={{ backgroundColor: '#333', color: '#ffffff' }}
+                        />
+                        <Legend wrapperStyle={{ color: '#ffffff' }} />
+                        <Line 
+                            type="monotone" 
+                            dataKey="Best" 
+                            stroke="#4CAF50" 
+                            dot={false} 
+                            strokeWidth={2}
+                        />
+                        <Line 
+                            type="monotone" 
+                            dataKey="Median" 
+                            stroke="#2196F3" 
+                            dot={false} 
+                            strokeWidth={2}
+                        />
+                        <Line 
+                            type="monotone" 
+                            dataKey="Worst" 
+                            stroke="#F44336" 
+                            dot={false} 
+                            strokeWidth={2}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </Box>
+        </Card>
     );
 };
 
