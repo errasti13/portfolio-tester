@@ -381,3 +381,19 @@ tr:hover {
   border: 0;
 }
 
+.portfolio-controls {
+  transition: all 0.3s ease;
+}
+
+.MuiLinearProgress-root {
+  transition: all 0.3s ease;
+}
+
+.asset-allocation {
+  transition: transform 0.2s ease;
+}
+
+.asset-allocation:hover {
+  transform: translateX(4px);
+}
+
