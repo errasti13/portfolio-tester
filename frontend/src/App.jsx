@@ -1,10 +1,53 @@
 import { useState, useEffect } from "react";
+import {
+    Container,
+    Typography,
+    Box,
+    CircularProgress,
+    Alert,
+    Paper,
+    ThemeProvider,
+    createTheme,
+    CssBaseline,
+    Fade,
+    Divider
+} from '@mui/material';
+import { motion } from 'framer-motion';
 import { runSimulations } from './utils/simulationUtils';
-import EnhancedChart from './components/EnhancedChart';
 import ErrorBoundary from './components/ErrorBoundary';
 import PortfolioControls from './components/PortfolioControls';
 import SimulationControls from './components/SimulationControls';
 import SimulationResults from './components/SimulationResults';
+
+// Create dark theme
+const darkTheme = createTheme({
+    palette: {
+        mode: 'dark',
+        primary: {
+            main: '#90caf9',
+        },
+        background: {
+            default: '#121212',
+            paper: '#1e1e1e',
+        },
+    },
+    typography: {
+        h1: {
+            fontSize: '2.5rem',
+            fontWeight: 600,
+            marginBottom: '2rem',
+        },
+    },
+    components: {
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    backgroundImage: 'none',
+                },
+            },
+        },
+    },
+});
 
 function App() {
     const [error, setError] = useState(null);
@@ -94,47 +137,122 @@ function App() {
     };
 
     return (
-        <ErrorBoundary>
-            <div style={{ textAlign: "center", marginTop: "50px" }}>
-                <h1>Portfolio Simulator</h1>
-                {isLoading ? (
-                    <div>Loading assets data...</div>
-                ) : (
-                    <>
-                        {error && <div className="error-message">{error}</div>}
-                        <div className="simulation-section">
-                            <PortfolioControls
-                                assets={assets}
-                                portfolio={portfolio}
-                                setPortfolio={setPortfolio}
-                                totalAllocation={portfolio.reduce((sum, asset) => sum + asset.allocation, 0)}
-                            />
-                            <SimulationControls
-                                initialInvestment={initialInvestment}
-                                setInitialInvestment={setInitialInvestment}
-                                simulationYears={simulationYears}
-                                setSimulationYears={setSimulationYears}
-                                periodicInvestment={periodicInvestment}
-                                setPeriodicInvestment={setPeriodicInvestment}
-                                investmentFrequency={investmentFrequency}
-                                setInvestmentFrequency={setInvestmentFrequency}
-                                runSimulation={runSimulation}
-                                isRunningSimulation={isRunningSimulation}
-                            />
-                        </div>
-                    </>
-                )}
-                {simulationResults && showSimulation && (
-                    <>
-                        <div className="sp500-section" style={{ margin: '2rem auto', maxWidth: '1200px' }}>
-                            <h2>Simulation Results</h2>
-                            <EnhancedChart simulationResults={simulationResults} />
-                        </div>
-                        <SimulationResults simulationResults={simulationResults} initialInvestment={initialInvestment} periodicInvestment={periodicInvestment} investmentFrequency={investmentFrequency} simulationYears={simulationYears} />
-                    </>
-                )}
-            </div>
-        </ErrorBoundary>
+        <ThemeProvider theme={darkTheme}>
+            <CssBaseline />
+            <ErrorBoundary>
+                <Container maxWidth="lg">
+                    <Box
+                        component={motion.div}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        sx={{
+                            minHeight: '100vh',
+                            py: 4,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 4
+                        }}
+                    >
+                        <Typography variant="h1" align="center" color="primary">
+                            Portfolio Simulator
+                        </Typography>
+
+                        {isLoading ? (
+                            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                                <CircularProgress size={60} />
+                            </Box>
+                        ) : (
+                            <Fade in={!isLoading}>
+                                <Box>
+                                    {error && (
+                                        <Alert 
+                                            severity="error" 
+                                            sx={{ 
+                                                mb: 3, 
+                                                backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                                                border: '1px solid rgba(211, 47, 47, 0.3)'
+                                            }}
+                                        >
+                                            {error}
+                                        </Alert>
+                                    )}
+
+                                    <Paper 
+                                        elevation={4}
+                                        sx={{ 
+                                            p: 3, 
+                                            borderRadius: 2,
+                                            backgroundColor: 'background.paper',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }}
+                                    >
+                                        <Box 
+                                            className="simulation-section"
+                                            sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 4,
+                                                '& > *': {
+                                                    width: '100%',
+                                                    maxWidth: '800px',
+                                                    mx: 'auto'
+                                                }
+                                            }}
+                                        >
+                                            <PortfolioControls
+                                                assets={assets}
+                                                portfolio={portfolio}
+                                                setPortfolio={setPortfolio}
+                                                totalAllocation={portfolio.reduce((sum, asset) => sum + asset.allocation, 0)}
+                                            />
+                                            <SimulationControls
+                                                initialInvestment={initialInvestment}
+                                                setInitialInvestment={setInitialInvestment}
+                                                simulationYears={simulationYears}
+                                                setSimulationYears={setSimulationYears}
+                                                periodicInvestment={periodicInvestment}
+                                                setPeriodicInvestment={setPeriodicInvestment}
+                                                investmentFrequency={investmentFrequency}
+                                                setInvestmentFrequency={setInvestmentFrequency}
+                                                runSimulation={runSimulation}
+                                                isRunningSimulation={isRunningSimulation}
+                                            />
+                                        </Box>
+                                    </Paper>
+
+                                    {simulationResults && showSimulation && (
+                                        <Fade in timeout={1000}>
+                                            <Paper 
+                                                elevation={4}
+                                                sx={{ 
+                                                    mt: 4, 
+                                                    p: 3, 
+                                                    borderRadius: 2,
+                                                    backgroundColor: 'background.paper'
+                                                }}
+                                            >
+                                                <Typography variant="h5" gutterBottom color="primary">
+                                                    Simulation Results
+                                                </Typography>
+                                                <Divider sx={{ my: 2 }} />
+                                                <SimulationResults 
+                                                    simulationResults={simulationResults}
+                                                    initialInvestment={initialInvestment}
+                                                    periodicInvestment={periodicInvestment}
+                                                    investmentFrequency={investmentFrequency}
+                                                    simulationYears={simulationYears}
+                                                />
+                                            </Paper>
+                                        </Fade>
+                                    )}
+                                </Box>
+                            </Fade>
+                        )}
+                    </Box>
+                </Container>
+            </ErrorBoundary>
+        </ThemeProvider>
     );
 }
 
