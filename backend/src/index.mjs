@@ -12,7 +12,7 @@ const ASSETS = {
         name: 'S&P 500'
     },
     'MSCI_WORLD': {
-        symbols: ['IWDA.AS'],  // Multiple MSCI World ETFs
+        symbols: ['^990100-USD-STRD'],  // Multiple MSCI World ETFs
         name: 'MSCI World'
     },
     'EURO_STOCKS': {
@@ -38,20 +38,6 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-
-const getAssetFirstDate = async (symbol) => {
-    try {
-        const result = await yahooFinance.chart(symbol, {
-            period1: new Date('1900-01-01'),
-            period2: new Date(),
-            interval: '1mo'
-        });
-        return result.quotes[0]?.date || null;
-    } catch (error) {
-        console.error(`Error fetching first date for ${symbol}:`, error);
-        return null;
-    }
-};
 
 const getAssetFullInfo = async (symbol) => {
     try {
