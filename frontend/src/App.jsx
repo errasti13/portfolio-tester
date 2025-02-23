@@ -134,6 +134,9 @@ function App() {
             setError(null);
         } catch (err) {
             setError(err.message);
+            // Clear previous simulation results on error and show asset allocation menu again
+            setShowSimulation(false);
+            setSimulationResults(null);
         } finally {
             setIsRunningSimulation(false);
         }
@@ -146,109 +149,110 @@ function App() {
                 
                 {isLoading ? (
                     <div>Loading assets data...</div>
-                ) : error ? (
-                    <div className="error-message">{error}</div>
                 ) : (
-                    <div className="simulation-section">
-                        <div className="portfolio-controls">
-                            <h3>Portfolio Allocation</h3>
-                            {portfolio.map((asset, index) => (
-                                <div key={index} className="asset-allocation">
-                                    <div className="asset-selector">
-                                        <select 
-                                            value={asset.assetId}
-                                            onChange={(e) => {
-                                                const updated = [...portfolio];
-                                                updated[index].assetId = e.target.value;
-                                                setPortfolio(updated);
-                                            }}
-                                        >
-                                            {assets.map(a => (
-                                                <option key={a.id} value={a.id}>{a.name}</option>
-                                            ))}
-                                        </select>
-                                        <input
-                                            type="number"
-                                            value={asset.allocation}
-                                            onChange={(e) => handleAllocationChange(index, e.target.value)}
-                                            min="0"
-                                            max="100"
-                                            step="5"
-                                        />
-                                        <span>%</span>
-                                        {portfolio.length > 1 && (
-                                            <button onClick={() => removeAsset(index)}>Remove</button>
-                                        )}
+                    <>
+                        {error && <div className="error-message">{error}</div>}
+                        <div className="simulation-section">
+                            <div className="portfolio-controls">
+                                <h3>Portfolio Allocation</h3>
+                                {portfolio.map((asset, index) => (
+                                    <div key={index} className="asset-allocation">
+                                        <div className="asset-selector">
+                                            <select 
+                                                value={asset.assetId}
+                                                onChange={(e) => {
+                                                    const updated = [...portfolio];
+                                                    updated[index].assetId = e.target.value;
+                                                    setPortfolio(updated);
+                                                }}
+                                            >
+                                                {assets.map(a => (
+                                                    <option key={a.id} value={a.id}>{a.name}</option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="number"
+                                                value={asset.allocation}
+                                                onChange={(e) => handleAllocationChange(index, e.target.value)}
+                                                min="0"
+                                                max="100"
+                                                step="5"
+                                            />
+                                            <span>%</span>
+                                            {portfolio.length > 1 && (
+                                                <button onClick={() => removeAsset(index)}>Remove</button>
+                                            )}
+                                        </div>
+                                        <div className="asset-warning" style={{
+                                            fontSize: '0.8em',
+                                            color: '#666',
+                                            marginTop: '4px',
+                                            fontStyle: 'italic'
+                                        }}>
+                                            {assets.find(a => a.id === asset.assetId)?.firstAvailableDate && (
+                                                `Data available from: ${new Date(assets.find(a => a.id === asset.assetId).firstAvailableDate).getFullYear()}`
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="asset-warning" style={{
-                                        fontSize: '0.8em',
-                                        color: '#666',
-                                        marginTop: '4px',
-                                        fontStyle: 'italic'
-                                    }}>
-                                        {assets.find(a => a.id === asset.assetId)?.firstAvailableDate && (
-                                            `Data available from: ${new Date(assets.find(a => a.id === asset.assetId).firstAvailableDate).getFullYear()}`
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {portfolio.length < 5 && (
-                                <button onClick={addAsset}>Add Asset</button>
-                            )}
-                            <div className="total-allocation">
-                                Total: {totalAllocation}%
-                                {totalAllocation !== 100 && (
-                                    <span className="error"> (Must equal 100%)</span>
+                                ))}
+                                {portfolio.length < 5 && (
+                                    <button onClick={addAsset}>Add Asset</button>
                                 )}
+                                <div className="total-allocation">
+                                    Total: {totalAllocation}%
+                                    {totalAllocation !== 100 && (
+                                        <span className="error"> (Must equal 100%)</span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="simulation-controls">
-                            <div className="control-group">
-                                <label>Initial Investment ($):</label>
-                                <input
-                                    type="number"
-                                    value={initialInvestment}
-                                    onChange={(e) => setInitialInvestment(Number(e.target.value))}
-                                    min="0"
-                                    step="1000"
-                                />
+                            <div className="simulation-controls">
+                                <div className="control-group">
+                                    <label>Initial Investment ($):</label>
+                                    <input
+                                        type="number"
+                                        value={initialInvestment}
+                                        onChange={(e) => setInitialInvestment(Number(e.target.value))}
+                                        min="0"
+                                        step="1000"
+                                    />
+                                </div>
+                                <div className="control-group">
+                                    <label>Investment Period (Years):</label>
+                                    <input
+                                        type="number"
+                                        value={simulationYears}
+                                        onChange={(e) => setSimulationYears(Number(e.target.value))}
+                                        min="1"
+                                        max="30"
+                                    />
+                                </div>
+                                <div className="control-group">
+                                    <label>Periodic Investment ($):</label>
+                                    <input
+                                        type="number"
+                                        value={periodicInvestment}
+                                        onChange={(e) => setPeriodicInvestment(Number(e.target.value))}
+                                        min="0"
+                                        step="100"
+                                    />
+                                </div>
+                                <div className="control-group">
+                                    <label>Investment Frequency:</label>
+                                    <select 
+                                        value={investmentFrequency}
+                                        onChange={(e) => setInvestmentFrequency(e.target.value)}
+                                    >
+                                        <option value="monthly">Monthly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+                                <button onClick={runSimulation} disabled={isRunningSimulation}>
+                                    {isRunningSimulation ? 'Running...' : 'Run Simulation'}
+                                </button>
                             </div>
-                            <div className="control-group">
-                                <label>Investment Period (Years):</label>
-                                <input
-                                    type="number"
-                                    value={simulationYears}
-                                    onChange={(e) => setSimulationYears(Number(e.target.value))}
-                                    min="1"
-                                    max="30"
-                                />
-                            </div>
-                            <div className="control-group">
-                                <label>Periodic Investment ($):</label>
-                                <input
-                                    type="number"
-                                    value={periodicInvestment}
-                                    onChange={(e) => setPeriodicInvestment(Number(e.target.value))}
-                                    min="0"
-                                    step="100"
-                                />
-                            </div>
-                            <div className="control-group">
-                                <label>Investment Frequency:</label>
-                                <select 
-                                    value={investmentFrequency}
-                                    onChange={(e) => setInvestmentFrequency(e.target.value)}
-                                >
-                                    <option value="monthly">Monthly</option>
-                                    <option value="yearly">Yearly</option>
-                                </select>
-                            </div>
-                            <button onClick={runSimulation} disabled={isRunningSimulation}>
-                                {isRunningSimulation ? 'Running...' : 'Run Simulation'}
-                            </button>
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {/* Chart Section */}
