@@ -17,6 +17,7 @@
 # Allow specific directories
 !frontend/
 !frontend/src/
+!frontend/src/components/     # Added exception for components folder
 !frontend/public/
 !backend/
 !backend/src/
