@@ -1,7 +1,3 @@
-# Ignore everything by default
-*
-*/*
-
 # Allow code files
 !.gitignore
 !*.js
@@ -13,6 +9,15 @@
 !*.css
 !*.md
 !*.mjs
+
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local/
+frontend/public/*
+frontend/.vscode/*
+frontend/.vscode/extensions.json
+frontend/src/typescript.svg
 
 # Allow specific directories
 !frontend/
