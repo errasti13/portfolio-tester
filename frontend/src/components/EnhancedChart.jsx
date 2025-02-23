@@ -4,16 +4,13 @@ import { Card, Typography, Box } from '@mui/material';
 const EnhancedChart = ({ simulationResults }) => {
     if (!simulationResults) return null;
 
-    console.log('Simulation Results:', simulationResults);
-
-    // Prepare data for the chart
     const prepareChartData = () => {
         const bestCase = simulationResults.best?.data || [];
         const medianCase = simulationResults.median?.data || [];
         const worstCase = simulationResults.worst?.data || [];
-
+        // Preserve all data points and add a unique monthIndex
         return bestCase.map((point, index) => ({
-            year: Math.floor(index / 12),  // Convert month index to year
+            monthIndex: index,
             Best: Math.round(point.value),
             Median: Math.round(medianCase[index]?.value || 0),
             Worst: Math.round(worstCase[index]?.value || 0)
@@ -21,20 +18,16 @@ const EnhancedChart = ({ simulationResults }) => {
     };
 
     const data = prepareChartData();
-    console.log('Prepared Chart Data:', data);
+    // Compute ticks for only the first month of each year
+    const yearlyTicks = data.filter(d => d.monthIndex % 12 === 0).map(d => d.monthIndex);
 
     const formatYAxis = (value) => {
-        if (value >= 1000000) {
-            return `$${(value / 1000000).toFixed(1)}M`;
-        } else if (value >= 1000) {
-            return `$${(value / 1000).toFixed(0)}K`;
-        }
+        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+        if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
         return `$${value}`;
     };
 
-    const formatTooltip = (value) => {
-        return `$${value.toLocaleString()}`;
-    };
+    const formatTooltip = (value) => `$${value.toLocaleString()}`;
 
     return (
         <Card sx={{ p: 3, borderRadius: 2, boxShadow: 4, bgcolor: '#1e1e1e', color: '#ffffff' }}>
@@ -49,7 +42,11 @@ const EnhancedChart = ({ simulationResults }) => {
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                         <XAxis 
-                            dataKey="year" 
+                            type="number"
+                            dataKey="monthIndex"
+                            domain={['dataMin', 'dataMax']}
+                            ticks={yearlyTicks}
+                            tickFormatter={(tick) => Math.floor(tick / 12)}
                             label={{ 
                                 value: 'Years', 
                                 position: 'insideBottom', 
@@ -74,27 +71,9 @@ const EnhancedChart = ({ simulationResults }) => {
                             contentStyle={{ backgroundColor: '#333', color: '#ffffff' }}
                         />
                         <Legend wrapperStyle={{ color: '#ffffff' }} />
-                        <Line 
-                            type="monotone" 
-                            dataKey="Best" 
-                            stroke="#4CAF50" 
-                            dot={false} 
-                            strokeWidth={2}
-                        />
-                        <Line 
-                            type="monotone" 
-                            dataKey="Median" 
-                            stroke="#2196F3" 
-                            dot={false} 
-                            strokeWidth={2}
-                        />
-                        <Line 
-                            type="monotone" 
-                            dataKey="Worst" 
-                            stroke="#F44336" 
-                            dot={false} 
-                            strokeWidth={2}
-                        />
+                        <Line type="monotone" dataKey="Best" stroke="#4CAF50" dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="Median" stroke="#2196F3" dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="Worst" stroke="#F44336" dot={false} strokeWidth={2} />
                     </LineChart>
                 </ResponsiveContainer>
             </Box>

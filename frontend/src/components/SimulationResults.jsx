@@ -12,7 +12,7 @@ const EnhancedChart = ({ simulationResults }) => {
         const worstCase = simulationResults.worst?.data || [];
 
         return bestCase.map((point, index) => ({
-            year: Math.floor(index / 12),
+            monthIndex: index,
             Best: Math.round(point.value),
             Median: Math.round(medianCase[index]?.value || 0),
             Worst: Math.round(worstCase[index]?.value || 0)
@@ -20,6 +20,7 @@ const EnhancedChart = ({ simulationResults }) => {
     };
 
     const data = prepareChartData();
+    const yearlyTicks = data.filter(d => d.monthIndex % 12 === 0).map(d => d.monthIndex);
     console.log('Prepared Chart Data:', data);
 
     const formatYAxis = (value) => {
@@ -48,7 +49,10 @@ const EnhancedChart = ({ simulationResults }) => {
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                         <XAxis 
-                            dataKey="year" 
+                            type="number"
+                            dataKey="monthIndex"
+                            ticks={yearlyTicks}
+                            tickFormatter={(tick) => Math.floor(tick / 12)}
                             label={{ 
                                 value: 'Years', 
                                 position: 'insideBottom', 
