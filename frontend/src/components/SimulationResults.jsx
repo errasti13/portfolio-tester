@@ -1,59 +1,137 @@
-function SimulationResults({ simulationResults, initialInvestment, periodicInvestment, investmentFrequency, simulationYears }) {
-    return (
-        <div className="results-summary">
-            <h3>Simulation Results</h3>
-            <div className="investment-summary">
-                <h4>📊 Investment Parameters</h4>
-                <div className="parameters-grid">
-                    <p><span className="label">Initial Investment:</span> <span className="value">${initialInvestment.toLocaleString()}</span></p>
-                    <p><span className="label">Periodic Investment:</span> <span className="value">${periodicInvestment.toLocaleString()} ({investmentFrequency})</span></p>
-                    <p><span className="label">Investment Period:</span> <span className="value">{simulationYears} years</span></p>
-                    <p><span className="label">Total Amount Invested:</span> <span className="value">${simulationResults?.best?.totalInvested?.toLocaleString() || 'N/A'}</span></p>
-                </div>
-            </div>
-            
-            <div className="scenarios">
-                {simulationResults?.best && (
-                    <div className="best-case">
-                        <h4>Best Case Scenario</h4>
-                        <ul>
-                            <li><span className="label">Total Return</span> <span className="value">{simulationResults.best.return?.toFixed(2) || 'N/A'}%</span></li>
-                            <li><span className="label">Annualized Return</span> <span className="value">{simulationResults.best.annualizedReturn?.toFixed(2) || 'N/A'}%</span></li>
-                            <li><span className="label">Final Value</span> <span className="value">${simulationResults.best.finalValue?.toLocaleString() || 'N/A'}</span></li>
-                            <li><span className="label">Net Profit</span> <span className="value">${(simulationResults.best.finalValue - simulationResults.best.totalInvested)?.toLocaleString() || 'N/A'}</span></li>
-                            <li><span className="label">Period</span> <span className="value">{simulationResults.best.startDate?.toLocaleDateString() || 'N/A'} - {simulationResults.best.endDate?.toLocaleDateString() || 'N/A'}</span></li>
-                        </ul>
-                    </div>
-                )}
-                
-                {simulationResults?.median && (
-                    <div className="median-case">
-                        <h4>Median Case Scenario</h4>
-                        <ul>
-                            <li>Total Return: {simulationResults.median.return?.toFixed(2) || 'N/A'}%</li>
-                            <li>Annualized Return: {simulationResults.median.annualizedReturn?.toFixed(2) || 'N/A'}%</li>
-                            <li>Final Portfolio Value: ${simulationResults.median.finalValue?.toLocaleString() || 'N/A'}</li>
-                            <li>Net Profit: ${(simulationResults.median.finalValue - simulationResults.median.totalInvested)?.toLocaleString() || 'N/A'}</li>
-                            <li>Period: {simulationResults.median.startDate?.toLocaleDateString() || 'N/A'} - {simulationResults.median.endDate?.toLocaleDateString() || 'N/A'}</li>
-                        </ul>
-                    </div>
-                )}
-                
-                {simulationResults?.worst && (
-                    <div className="worst-case">
-                        <h4>Worst Case Scenario:</h4>
-                        <ul>
-                            <li>Total Return: {simulationResults.worst.return?.toFixed(2) || 'N/A'}%</li>
-                            <li>Annualized Return: {simulationResults.worst.annualizedReturn?.toFixed(2) || 'N/A'}%</li>
-                            <li>Final Portfolio Value: ${simulationResults.worst.finalValue?.toLocaleString() || 'N/A'}</li>
-                            <li>Net Profit: ${(simulationResults.worst.finalValue - simulationResults.worst.totalInvested)?.toLocaleString() || 'N/A'}</li>
-                            <li>Period: {simulationResults.worst.startDate?.toLocaleDateString() || 'N/A'} - {simulationResults.worst.endDate?.toLocaleDateString() || 'N/A'}</li>
-                        </ul>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, Typography, Box, Grid, Paper } from '@mui/material';
 
-export default SimulationResults;
+const EnhancedChart = ({ simulationResults }) => {
+    if (!simulationResults) return null;
+
+    console.log('Simulation Results:', simulationResults);
+
+    const prepareChartData = () => {
+        const bestCase = simulationResults.best?.data || [];
+        const medianCase = simulationResults.median?.data || [];
+        const worstCase = simulationResults.worst?.data || [];
+
+        return bestCase.map((point, index) => ({
+            year: Math.floor(index / 12),
+            Best: Math.round(point.value),
+            Median: Math.round(medianCase[index]?.value || 0),
+            Worst: Math.round(worstCase[index]?.value || 0)
+        }));
+    };
+
+    const data = prepareChartData();
+    console.log('Prepared Chart Data:', data);
+
+    const formatYAxis = (value) => {
+        if (value >= 1000000) {
+            return `$${(value / 1000000).toFixed(1)}M`;
+        } else if (value >= 1000) {
+            return `$${(value / 1000).toFixed(0)}K`;
+        }
+        return `$${value}`;
+    };
+
+    const formatTooltip = (value) => {
+        return `$${value.toLocaleString()}`;
+    };
+
+    return (
+        <Card sx={{ p: 3, borderRadius: 2, boxShadow: 4, bgcolor: '#1e1e1e', color: '#ffffff' }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
+                Portfolio Simulation
+            </Typography>
+            <Box sx={{ width: '100%', height: 400 }}>
+                <ResponsiveContainer>
+                    <LineChart
+                        data={data}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                        <XAxis 
+                            dataKey="year" 
+                            label={{ 
+                                value: 'Years', 
+                                position: 'insideBottom', 
+                                offset: -5, 
+                                fill: '#ffffff' 
+                            }}
+                            tick={{ fill: '#ffffff' }}
+                        />
+                        <YAxis 
+                            tickFormatter={formatYAxis}
+                            label={{ 
+                                value: 'Portfolio Value', 
+                                angle: -90, 
+                                position: 'insideLeft', 
+                                fill: '#ffffff' 
+                            }}
+                            tick={{ fill: '#ffffff' }}
+                        />
+                        <Tooltip 
+                            formatter={formatTooltip}
+                            labelFormatter={(label) => `Year ${label}`}
+                            contentStyle={{ backgroundColor: '#333', color: '#ffffff' }}
+                        />
+                        <Legend wrapperStyle={{ color: '#ffffff' }} />
+                        <Line 
+                            type="monotone" 
+                            dataKey="Best" 
+                            stroke="#4CAF50" 
+                            dot={false} 
+                            strokeWidth={2}
+                        />
+                        <Line 
+                            type="monotone" 
+                            dataKey="Median" 
+                            stroke="#2196F3" 
+                            dot={false} 
+                            strokeWidth={2}
+                        />
+                        <Line 
+                            type="monotone" 
+                            dataKey="Worst" 
+                            stroke="#F44336" 
+                            dot={false} 
+                            strokeWidth={2}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </Box>
+
+            {/* Simulation Results Section */}
+            <Paper sx={{ mt: 3, p: 2, bgcolor: '#2a2a2a', color: '#ffffff' }}>
+                <Typography variant="h6" gutterBottom>
+                    Simulation Results
+                </Typography>
+                <Grid container spacing={2}>
+                    {simulationResults?.best && (
+                        <Grid item xs={12} sm={4}>
+                            <Typography variant="subtitle1">Best Case</Typography>
+                            <Typography>Total Return: {simulationResults.best.return?.toFixed(2)}%</Typography>
+                            <Typography>Annualized Return: {simulationResults.best.annualizedReturn?.toFixed(2)}%</Typography>
+                            <Typography>Final Value: ${simulationResults.best.finalValue?.toLocaleString()}</Typography>
+                        </Grid>
+                    )}
+                    {simulationResults?.median && (
+                        <Grid item xs={12} sm={4}>
+                            <Typography variant="subtitle1">Median Case</Typography>
+                            <Typography>Total Return: {simulationResults.median.return?.toFixed(2)}%</Typography>
+                            <Typography>Annualized Return: {simulationResults.median.annualizedReturn?.toFixed(2)}%</Typography>
+                            <Typography>Final Value: ${simulationResults.median.finalValue?.toLocaleString()}</Typography>
+                        </Grid>
+                    )}
+                    {simulationResults?.worst && (
+                        <Grid item xs={12} sm={4}>
+                            <Typography variant="subtitle1">Worst Case</Typography>
+                            <Typography>Total Return: {simulationResults.worst.return?.toFixed(2)}%</Typography>
+                            <Typography>Annualized Return: {simulationResults.worst.annualizedReturn?.toFixed(2)}%</Typography>
+                            <Typography>Final Value: ${simulationResults.worst.finalValue?.toLocaleString()}</Typography>
+                        </Grid>
+                    )}
+                </Grid>
+            </Paper>
+        </Card>
+    );
+};
+
+export default EnhancedChart;
