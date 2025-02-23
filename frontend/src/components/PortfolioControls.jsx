@@ -37,8 +37,8 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
     };
 
     return (
-        <Card sx={{ p: 3, borderRadius: 2, boxShadow: 4, bgcolor: '#1e1e1e', color: '#ffffff' }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
+        <Card sx={{ p: 3, borderRadius: 2, boxShadow: 3 }}>
+            <Typography variant="h5" gutterBottom>
                 Portfolio Allocation
             </Typography>
             
@@ -55,7 +55,7 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                             container
                             spacing={2}
                             alignItems="center"
-                            sx={{ mb: 2, bgcolor: '#252525', p: 2, borderRadius: 2 }}
+                            sx={{ mb: 2 }}
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
@@ -69,12 +69,9 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                                         setPortfolio(updated);
                                     }}
                                     size="small"
-                                    sx={{ bgcolor: '#333', color: '#fff' }}
                                 >
                                     {assets.map(a => (
-                                        <MenuItem key={a.id} value={a.id} sx={{ color: '#fff' }}>
-                                            {a.name}
-                                        </MenuItem>
+                                        <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>
                                     ))}
                                 </Select>
                             </Grid>
@@ -85,12 +82,10 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                                     onChange={(e) => handleAllocationChange(index, e.target.value)}
                                     InputProps={{
                                         endAdornment: '%',
-                                        inputProps: { min: 0, max: 100, step: 5 },
-                                        sx: { color: '#fff' }
+                                        inputProps: { min: 0, max: 100, step: 5 }
                                     }}
                                     size="small"
                                     fullWidth
-                                    sx={{ bgcolor: '#333', color: '#fff' }}
                                 />
                             </Grid>
                             <Grid item xs={12} sm={3}>
@@ -108,7 +103,7 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                             </Grid>
                             <Grid item xs={12}>
                                 <Fade in={hoveredIndex === index}>
-                                    <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', color: '#bbb' }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
                                         {assets.find(a => a.id === asset.assetId)?.firstAvailableDate && 
                                             `Data available from: ${new Date(assets.find(a => a.id === asset.assetId).firstAvailableDate).getFullYear()}`
                                         }
@@ -124,8 +119,8 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                 <Button
                     startIcon={<AddIcon />}
                     onClick={addAsset}
-                    variant="contained"
-                    sx={{ mt: 2, bgcolor: '#333', color: '#fff', ':hover': { bgcolor: '#444' } }}
+                    variant="outlined"
+                    sx={{ mt: 2 }}
                 >
                     Add Asset
                 </Button>
@@ -139,10 +134,10 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                     variant="determinate" 
                     value={Math.min(totalAllocation, 100)}
                     color={totalAllocation === 100 ? "success" : "warning"}
-                    sx={{ height: 8, borderRadius: 4, bgcolor: '#333' }}
+                    sx={{ height: 8, borderRadius: 4 }}
                 />
                 {totalAllocation !== 100 && (
-                    <Alert severity="warning" sx={{ mt: 2, bgcolor: '#2e2e2e', color: '#ffcc00' }}>
+                    <Alert severity="warning" sx={{ mt: 2 }}>
                         Total allocation must equal 100%
                     </Alert>
                 )}

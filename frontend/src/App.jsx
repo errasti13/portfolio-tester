@@ -24,7 +24,7 @@ const darkTheme = createTheme({
     palette: {
         mode: 'dark',
         primary: {
-            main: '#90caf9',
+            main: '#1e88e5', // Blue
         },
         background: {
             default: '#121212',
@@ -36,6 +36,8 @@ const darkTheme = createTheme({
             fontSize: '2.5rem',
             fontWeight: 600,
             marginBottom: '2rem',
+            color: '#42a5f5', // Lighter blue for better contrast
+            textShadow: '0 0 15px rgba(66, 165, 245, 0.4)', // Subtle glow with blue
         },
     },
     components: {
