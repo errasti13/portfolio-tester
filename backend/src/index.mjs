@@ -8,7 +8,7 @@ yahooFinance.suppressNotices(['ripHistorical']);
 
 const ASSETS = {
     'SP500': {
-        symbols: ['^GSPC', 'SPY'],  // S&P 500 Index and ETF
+        symbols: ['^GSPC'],  // S&P 500 Index and ETF
         name: 'S&P 500'
     },
     'MSCI_WORLD': {
@@ -20,11 +20,11 @@ const ASSETS = {
         name: 'Euro Stoxx 50'
     },
     'GOLD': {
-        symbols: ['GLD', 'IAU'],  // Gold ETFs
+        symbols: ['GC=F'],  // Gold ETFs
         name: 'Gold'
     },
     'US_10Y_BONDS': {
-        symbols: ['IEF', '^TNX'],  // Treasury ETF and Yield
+        symbols: ['^TNX'],  // Treasury ETF and Yield
         name: '10-Year Treasury'
     }
 };
@@ -81,7 +81,7 @@ const getAssetBestData = async (symbols) => {
         try {
             console.log(`Trying symbol: ${symbol}`);
             const result = await yahooFinance.chart(symbol, {
-                period1: '1950-01-01',
+                period1: '1900-01-01',
                 period2: new Date().toISOString().split('T')[0],
                 interval: '1d'
             });
