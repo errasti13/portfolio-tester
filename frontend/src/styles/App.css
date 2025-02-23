@@ -1,0 +1,22 @@
+.asset-allocation {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.asset-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.asset-warning {
+    margin-top: 0.5rem;
+    padding: 0.25rem;
+    background-color: #fff9c4;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #666;
+}
+
