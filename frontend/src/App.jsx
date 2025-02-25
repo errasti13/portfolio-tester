@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     Container,
     Typography,
@@ -21,6 +21,7 @@ import theme from './theme';
 import Logo from './components/Logo';
 
 function App() {
+    const resultsRef = useRef(null);
     const [error, setError] = useState(null);
     const [assets, setAssets] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +99,11 @@ function App() {
             setSimulationResults(results);
             setShowSimulation(true);
             setError(null);
+            
+            // Scroll to results after they're available
+            setTimeout(() => {
+                resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         } catch (err) {
             setError(err.message);
             setShowSimulation(false);
@@ -199,6 +205,7 @@ function App() {
                                     {simulationResults && showSimulation && (
                                         <Fade in timeout={1000}>
                                             <Paper 
+                                                ref={resultsRef}
                                                 elevation={4}
                                                 sx={{ 
                                                     mt: 4, 
