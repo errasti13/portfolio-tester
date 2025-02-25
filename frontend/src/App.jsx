@@ -7,7 +7,6 @@ import {
     Alert,
     Paper,
     ThemeProvider,
-    createTheme,
     CssBaseline,
     Fade,
     Divider
@@ -18,38 +17,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import PortfolioControls from './components/PortfolioControls';
 import SimulationControls from './components/SimulationControls';
 import SimulationResults from './components/SimulationResults';
-
-// Create dark theme
-const darkTheme = createTheme({
-    palette: {
-        mode: 'dark',
-        primary: {
-            main: '#1e88e5', // Blue
-        },
-        background: {
-            default: '#121212',
-            paper: '#1e1e1e',
-        },
-    },
-    typography: {
-        h1: {
-            fontSize: '2.5rem',
-            fontWeight: 600,
-            marginBottom: '2rem',
-            color: '#42a5f5', // Lighter blue for better contrast
-            textShadow: '0 0 15px rgba(66, 165, 245, 0.4)', // Subtle glow with blue
-        },
-    },
-    components: {
-        MuiPaper: {
-            styleOverrides: {
-                root: {
-                    backgroundImage: 'none',
-                },
-            },
-        },
-    },
-});
+import theme from './theme';
+import Logo from './components/Logo';
 
 function App() {
     const [error, setError] = useState(null);
@@ -139,10 +108,10 @@ function App() {
     };
 
     return (
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider theme={theme}>
             <CssBaseline />
             <ErrorBoundary>
-                <Container maxWidth="lg">
+                <Container maxWidth="lg" sx={{ py: 4 }}>
                     <Box
                         component={motion.div}
                         initial={{ opacity: 0, y: 20 }}
@@ -155,10 +124,14 @@ function App() {
                             gap: 4
                         }}
                     >
-                        <Typography variant="h1" align="center" color="primary">
-                            Portfolio Simulator
-                        </Typography>
-
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <Logo />
+                        </motion.div>
+                        
                         {isLoading ? (
                             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                                 <CircularProgress size={60} />
