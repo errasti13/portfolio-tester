@@ -27,7 +27,6 @@ const EnhancedChart = ({ simulationResults }) => {
         return `$${value}`;
     };
 
-    const formatTooltip = (value) => `$${value.toLocaleString()}`;
 
     return (
         <Card sx={{ p: 3, borderRadius: 2, boxShadow: 4, bgcolor: '#1e1e1e', color: '#ffffff' }}>
@@ -64,11 +63,6 @@ const EnhancedChart = ({ simulationResults }) => {
                                 fill: '#ffffff' 
                             }}
                             tick={{ fill: '#ffffff' }}
-                        />
-                        <Tooltip 
-                            formatter={formatTooltip}
-                            labelFormatter={(label) => `Year ${label}`}
-                            contentStyle={{ backgroundColor: '#333', color: '#ffffff' }}
                         />
                         <Legend wrapperStyle={{ color: '#ffffff' }} />
                         <Line type="monotone" dataKey="Best" stroke="#4CAF50" dot={false} strokeWidth={2} />
