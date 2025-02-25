@@ -45,7 +45,7 @@ const EnhancedChart = ({ simulationResults }) => {
                 <ResponsiveContainer>
                     <LineChart
                         data={data}
-                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                        margin={{ top: 5, right: 30, left: 40, bottom: 20 }}  // Increased bottom margin
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                         <XAxis 
@@ -56,27 +56,33 @@ const EnhancedChart = ({ simulationResults }) => {
                             label={{ 
                                 value: 'Years', 
                                 position: 'insideBottom', 
-                                offset: -5, 
-                                fill: '#ffffff' 
+                                offset: -10,  // Adjusted offset
+                                fill: '#ffffff',
+                                dy: 10  // Move label down
                             }}
-                            tick={{ fill: '#ffffff' }}
+                            tick={{ fill: '#ffffff', dy: 5 }}  // Move ticks down
                         />
                         <YAxis 
                             tickFormatter={formatYAxis}
                             label={{ 
                                 value: 'Portfolio Value', 
                                 angle: -90, 
-                                position: 'insideLeft', 
+                                position: 'insideLeft',
+                                offset: -30,  // Add offset to move label away from ticks
                                 fill: '#ffffff' 
                             }}
                             tick={{ fill: '#ffffff' }}
                         />
                         <Tooltip 
                             formatter={formatTooltip}
-                            labelFormatter={(label) => `Year ${label}`}
+                            labelFormatter={(monthIndex) => `Year ${Math.floor(monthIndex / 12)}`}
                             contentStyle={{ backgroundColor: '#333', color: '#ffffff' }}
                         />
-                        <Legend wrapperStyle={{ color: '#ffffff' }} />
+                        <Legend 
+                            wrapperStyle={{ color: '#ffffff' }}
+                            verticalAlign="top"
+                            height={36}  // Add height to create space
+                        />
                         <Line 
                             type="monotone" 
                             dataKey="Best" 

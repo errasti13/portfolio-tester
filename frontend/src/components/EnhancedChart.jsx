@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, Typography, Box } from '@mui/material';
 
 const EnhancedChart = ({ simulationResults }) => {
@@ -64,10 +64,12 @@ const EnhancedChart = ({ simulationResults }) => {
                             }}
                             tick={{ fill: '#ffffff' }}
                         />
+                        {/* Override Tooltip to render nothing */}
+                        <Tooltip content={() => null} cursor={false} />
                         <Legend wrapperStyle={{ color: '#ffffff' }} />
-                        <Line type="monotone" dataKey="Best" stroke="#4CAF50" dot={false} strokeWidth={2} />
-                        <Line type="monotone" dataKey="Median" stroke="#2196F3" dot={false} strokeWidth={2} />
-                        <Line type="monotone" dataKey="Worst" stroke="#F44336" dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="Best" stroke="#4CAF50" dot={false} activeDot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="Median" stroke="#2196F3" dot={false} activeDot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="Worst" stroke="#F44336" dot={false} activeDot={false} strokeWidth={2} />
                     </LineChart>
                 </ResponsiveContainer>
             </Box>
