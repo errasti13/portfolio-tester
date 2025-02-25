@@ -12,7 +12,7 @@ const ASSETS = {
         name: 'S&P 500'
     },
     'MSCI_WORLD': {
-        symbols: ['^990100-USD-STRD'],  // Multiple MSCI World ETFs
+        symbols: ['IWDA.AS'],  // Multiple MSCI World ETFs
         name: 'MSCI World'
     },
     'EURO_STOCKS': {
