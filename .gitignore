@@ -27,6 +27,8 @@ frontend/src/typescript.svg
 !backend/
 !backend/src/
 
+backend/data
+
 # Still ignore node_modules everywhere
 node_modules/
 **/node_modules/
