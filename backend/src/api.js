@@ -1,9 +1,10 @@
 import express from 'express';
 import { fetchHistoricalData } from './services/yahoo.js';
+import { validateHistoricalData, validateSimulation } from './middleware/validation.js';
 
 const router = express.Router();
 
-router.get('/historical-data', async (req, res) => {
+router.get('/historical-data', validateHistoricalData, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         const data = await fetchHistoricalData(startDate, endDate);
@@ -13,7 +14,7 @@ router.get('/historical-data', async (req, res) => {
     }
 });
 
-router.get('/simulate', async (req, res) => {
+router.get('/simulate', validateSimulation, async (req, res) => {
     try {
         const { initialAmount, monthlyContribution, years } = req.query;
         // Add simulation logic here
