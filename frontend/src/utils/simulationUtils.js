@@ -45,7 +45,7 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
     const monthsPerYear = 12;
     const simulationLength = years * monthsPerYear;
     const investmentInterval = frequency === 'monthly' ? 1 : monthsPerYear;
-    const numSimulations = 100;
+    const numSimulations = 10000;
 
     // Calculate true monthly returns (accounting for compounding)
     const calculateMonthlyReturns = (data) => {
@@ -112,15 +112,13 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
                 });
             }
 
-            // Calculate Money-Weighted Return (considers timing of cash flows)
-            const totalReturn = ((value - totalInvested) / totalInvested) * 100;
+            // Fix return calculations
+            let totalReturn = (value / totalInvested - 1);
+            let annualizedReturn = Math.pow(1 + totalReturn, 1 / years) - 1;
 
-            // Calculate true CAGR (Compound Annual Growth Rate)
-            const weightedInitialValue = investments.reduce((sum, inv) => {
-                return sum + (inv.amount * (inv.monthsInvested / simulationLength));
-            }, 0);
-            
-            const annualizedReturn = (Math.pow(value / weightedInitialValue, 12 / simulationLength) - 1) * 100;
+            // Convert to percentages with 2 decimal places
+            totalReturn = parseFloat((totalReturn * 100).toFixed(2));
+            annualizedReturn = parseFloat((annualizedReturn * 100).toFixed(2));
 
             simulations.push({
                 return: totalReturn,
