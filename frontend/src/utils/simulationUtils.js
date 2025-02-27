@@ -96,14 +96,22 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
                 // Apply return to current value
                 value *= (1 + monthlyReturn);
 
-                // Add periodic investment
-                if (periodicInvestment > 0 && month % investmentInterval === 0) {
+                // Handle periodic investment or withdrawal
+                if (month % investmentInterval === 0) {
                     value += periodicInvestment;
-                    totalInvested += periodicInvestment;
-                    investments.push({
-                        amount: periodicInvestment,
-                        monthsInvested: simulationLength - month
-                    });
+                    // Only add positive investments to totalInvested
+                    if (periodicInvestment > 0) {
+                        totalInvested += periodicInvestment;
+                        investments.push({
+                            amount: periodicInvestment,
+                            monthsInvested: simulationLength - month
+                        });
+                    }
+                }
+
+                // Ensure value does not go negative
+                if (value < 0) {
+                    value = 0;
                 }
 
                 valueHistory.push({
@@ -113,6 +121,7 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
             }
 
             // Fix return calculations
+            // For withdrawals, we still want to show the actual return on the invested amount
             let totalReturn = (value / totalInvested - 1);
             let annualizedReturn = Math.pow(1 + totalReturn, 1 / years) - 1;
 
@@ -125,6 +134,7 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
                 annualizedReturn,
                 initialInvestment,
                 totalInvested,
+                totalWithdrawn: periodicInvestment < 0 ? Math.abs(periodicInvestment * (simulationLength / investmentInterval)) : 0,
                 finalValue: value,
                 data: valueHistory,
                 startDate: new Date(valueHistory[0].date),

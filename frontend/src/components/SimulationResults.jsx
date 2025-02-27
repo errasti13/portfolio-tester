@@ -116,29 +116,55 @@ const EnhancedChart = ({ simulationResults }) => {
                 <Grid container spacing={2}>
                     {simulationResults?.best && (
                         <Grid item xs={12} sm={4}>
-                            <Typography variant="subtitle1">Best Case</Typography>
+                            <Typography variant="subtitle1" sx={{ color: '#4CAF50', mb: 1 }}>Best Case</Typography>
                             <Typography>Total Return: {simulationResults.best.return?.toFixed(2)}%</Typography>
                             <Typography>Annualized Return: {simulationResults.best.annualizedReturn?.toFixed(2)}%</Typography>
                             <Typography>Final Value: ${simulationResults.best.finalValue?.toLocaleString()}</Typography>
+                            <Typography>Total Invested: ${simulationResults.best.totalInvested?.toLocaleString()}</Typography>
+                            {simulationResults.best.totalWithdrawn > 0 && (
+                                <Typography>Total Withdrawn: ${simulationResults.best.totalWithdrawn?.toLocaleString()}</Typography>
+                            )}
                         </Grid>
                     )}
                     {simulationResults?.median && (
                         <Grid item xs={12} sm={4}>
-                            <Typography variant="subtitle1">Median Case</Typography>
+                            <Typography variant="subtitle1" sx={{ color: '#2196F3', mb: 1 }}>Median Case</Typography>
                             <Typography>Total Return: {simulationResults.median.return?.toFixed(2)}%</Typography>
                             <Typography>Annualized Return: {simulationResults.median.annualizedReturn?.toFixed(2)}%</Typography>
                             <Typography>Final Value: ${simulationResults.median.finalValue?.toLocaleString()}</Typography>
+                            <Typography>Total Invested: ${simulationResults.median.totalInvested?.toLocaleString()}</Typography>
+                            {simulationResults.median.totalWithdrawn > 0 && (
+                                <Typography>Total Withdrawn: ${simulationResults.median.totalWithdrawn?.toLocaleString()}</Typography>
+                            )}
                         </Grid>
                     )}
                     {simulationResults?.worst && (
                         <Grid item xs={12} sm={4}>
-                            <Typography variant="subtitle1">Worst Case</Typography>
+                            <Typography variant="subtitle1" sx={{ color: '#F44336', mb: 1 }}>Worst Case</Typography>
                             <Typography>Total Return: {simulationResults.worst.return?.toFixed(2)}%</Typography>
                             <Typography>Annualized Return: {simulationResults.worst.annualizedReturn?.toFixed(2)}%</Typography>
                             <Typography>Final Value: ${simulationResults.worst.finalValue?.toLocaleString()}</Typography>
+                            <Typography>Total Invested: ${simulationResults.worst.totalInvested?.toLocaleString()}</Typography>
+                            {simulationResults.worst.totalWithdrawn > 0 && (
+                                <Typography>Total Withdrawn: ${simulationResults.worst.totalWithdrawn?.toLocaleString()}</Typography>
+                            )}
                         </Grid>
                     )}
                 </Grid>
+                {simulationResults?.worst?.finalValue < 0 && (
+                    <Typography 
+                        color="error" 
+                        sx={{ 
+                            mt: 2, 
+                            p: 2, 
+                            bgcolor: 'rgba(244, 67, 54, 0.1)', 
+                            borderRadius: 1,
+                            border: '1px solid rgba(244, 67, 54, 0.3)'
+                        }}
+                    >
+                        Warning: In some scenarios, the withdrawal rate may deplete the portfolio.
+                    </Typography>
+                )}
             </Paper>
         </Card>
     );
