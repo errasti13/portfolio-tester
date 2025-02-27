@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Asset } from '../types';
+import ApiService from '../services/api';
 
 export function useAssets() {
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -10,9 +11,7 @@ export function useAssets() {
         const fetchAssets = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('http://localhost:5000/api/assets');
-                if (!response.ok) throw new Error('Failed to fetch assets');
-                const data = await response.json();
+                const data = await ApiService.getAssets();
                 setAssets(data);
             } catch (err) {
                 console.error('Error fetching assets:', err);

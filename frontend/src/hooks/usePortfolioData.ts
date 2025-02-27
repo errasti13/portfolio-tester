@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PortfolioAsset } from '../types';
+import ApiService from '../services/api';
 
 export function usePortfolioData(portfolio: PortfolioAsset[]) {
     const [portfolioData, setPortfolioData] = useState<Record<string, any>>({});
@@ -8,14 +9,7 @@ export function usePortfolioData(portfolio: PortfolioAsset[]) {
     useEffect(() => {
         const fetchPortfolioData = async () => {
             try {
-                const results: Record<string, any> = {};
-                for (const item of portfolio) {
-                    const response = await fetch(`http://localhost:5000/api/asset/${item.assetId}/history`);
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch ${item.assetId} data`);
-                    }
-                    results[item.assetId] = await response.json();
-                }
+                const results = await ApiService.getPortfolioData(portfolio);
                 setPortfolioData(results);
             } catch (err) {
                 console.error('Error fetching portfolio data:', err);

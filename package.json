@@ -6,14 +6,10 @@
     "frontend",
     "backend"
   ],
-  "dependencies": {
-    "autoprefixer": "^10.0.0",
-    "axios": "^1.7.9",
-    "dotenv": "^16.4.7",
-    "node-fetch": "^3.3.2",
-    "postcss": "^8.0.0",
-    "recharts": "^2.1.9",
-    "tailwindcss": "^3.0.0"
-  },
-  "type": "module"
+  "scripts": {
+    "start": "npm run start --workspace=backend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend"
+  }
 }
