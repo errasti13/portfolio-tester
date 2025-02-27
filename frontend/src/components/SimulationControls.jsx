@@ -20,7 +20,8 @@ function SimulationControls({
     investmentFrequency,
     setInvestmentFrequency,
     runSimulation,
-    isRunningSimulation
+    isRunningSimulation,
+    hasErrors
 }) {
     const handleNumberInput = (value, setter) => {
         // Allow any string input including negative sign
@@ -165,7 +166,7 @@ function SimulationControls({
             <Box sx={{ mt: 4, textAlign: 'center' }}>
                 <Button 
                     onClick={runSimulation} 
-                    disabled={isRunningSimulation}
+                    disabled={isRunningSimulation || hasErrors}
                     variant="contained"
                     size="large"
                     sx={{
@@ -175,10 +176,14 @@ function SimulationControls({
                         boxShadow: '0 4px 10px rgba(33, 150, 243, 0.3)',
                         '&:hover': {
                             background: 'linear-gradient(45deg, #1976D2, #2196F3)',
+                        },
+                        '&:disabled': {
+                            background: 'linear-gradient(45deg, #9e9e9e, #bdbdbd)',
+                            opacity: 0.7
                         }
                     }}
                 >
-                    {isRunningSimulation ? 'Running...' : 'Run Simulation'}
+                    {isRunningSimulation ? 'Running...' : hasErrors ? 'Fix Errors to Run' : 'Run Simulation'}
                 </Button>
             </Box>
         </Card>

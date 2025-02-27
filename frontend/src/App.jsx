@@ -13,10 +13,12 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { runSimulations } from './utils/simulationUtils';
+import { validateSimulationInputs } from './utils/validationUtils';
 import ErrorBoundary from './components/ErrorBoundary';
 import PortfolioControls from './components/PortfolioControls';
 import SimulationControls from './components/SimulationControls';
 import SimulationResults from './components/SimulationResults';
+import ValidationMessages from './components/ValidationMessages';
 import theme from './theme';
 import Logo from './components/Logo';
 import { useAssets } from './hooks/useAssets';
@@ -27,7 +29,7 @@ function App() {
     const [portfolio, setPortfolio] = useState([{ assetId: 'SP500', allocation: 100 }]);
     const { assets, isLoading: assetsLoading } = useAssets();
     const { portfolioData, error: portfolioError } = usePortfolioData(portfolio);
-    const [error, setError] = useState(null);
+    const [validation, setValidation] = useState(null);
     const [simulationYears, setSimulationYears] = useState(20);
     const [simulationResults, setSimulationResults] = useState(null);
     const [showSimulation, setShowSimulation] = useState(false);
@@ -36,40 +38,37 @@ function App() {
     const [initialInvestment, setInitialInvestment] = useState(10000);
     const [isRunningSimulation, setIsRunningSimulation] = useState(false);
 
+    // Validate inputs whenever they change
+    useEffect(() => {
+        const validationResult = validateSimulationInputs({
+            initialInvestment,
+            simulationYears,
+            periodicInvestment,
+            portfolio
+        });
+        setValidation(validationResult);
+    }, [initialInvestment, simulationYears, periodicInvestment, portfolio]);
+
     const runSimulation = async () => {
-        // Validate inputs and convert to numbers
-        if (initialInvestment === '' || simulationYears === '' || periodicInvestment === '') {
-            setError('Please fill in all investment fields');
-            return;
-        }
+        // Validate inputs
+        const validationResult = validateSimulationInputs({
+            initialInvestment,
+            simulationYears,
+            periodicInvestment,
+            portfolio
+        });
 
-        const numInitialInvestment = Number(initialInvestment);
-        const numSimulationYears = Number(simulationYears);
-        const numPeriodicInvestment = Number(periodicInvestment);
+        setValidation(validationResult);
 
-        // Validate converted numbers
-        if (isNaN(numInitialInvestment) || isNaN(numSimulationYears) || isNaN(numPeriodicInvestment)) {
-            setError('Please enter valid numbers for all investment fields');
-            return;
-        }
-
-        if (numSimulationYears <= 0) {
-            setError('Investment period must be greater than 0 years');
-            return;
-        }
-
-        const totalAllocation = portfolio.reduce((sum, asset) => {
-            const allocation = asset.allocation === '' ? 0 : Number(asset.allocation);
-            return sum + allocation;
-        }, 0);
-
-        if (totalAllocation !== 100) {
-            setError('Total allocation must equal 100%');
+        if (!validationResult.isValid) {
             return;
         }
 
         if (!Object.keys(portfolioData).length) {
-            setError('Waiting for asset data to load...');
+            setValidation({
+                ...validationResult,
+                errors: [...validationResult.errors, 'Waiting for asset data to load...']
+            });
             return;
         }
 
@@ -81,21 +80,23 @@ function App() {
                     ...asset,
                     allocation: asset.allocation === '' ? 0 : Number(asset.allocation)
                 })),
-                numSimulationYears,
-                numInitialInvestment,
-                numPeriodicInvestment,
+                Number(simulationYears),
+                Number(initialInvestment),
+                Number(periodicInvestment),
                 investmentFrequency
             );
             setSimulationResults(results);
             setShowSimulation(true);
-            setError(null);
             
             // Scroll to results after they're available
             setTimeout(() => {
                 resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         } catch (err) {
-            setError(err.message);
+            setValidation({
+                ...validationResult,
+                errors: [...validationResult.errors, err.message]
+            });
             setShowSimulation(false);
             setSimulationResults(null);
         } finally {
@@ -105,7 +106,11 @@ function App() {
 
     useEffect(() => {
         if (portfolioError) {
-            setError(portfolioError);
+            setValidation(prev => ({
+                ...(prev || { warnings: [] }),
+                errors: [portfolioError],
+                isValid: false
+            }));
         }
     }, [portfolioError]);
 
@@ -141,18 +146,7 @@ function App() {
                         ) : (
                             <Fade in={!assetsLoading}>
                                 <Box>
-                                    {error && (
-                                        <Alert 
-                                            severity="error" 
-                                            sx={{ 
-                                                mb: 3, 
-                                                backgroundColor: 'rgba(211, 47, 47, 0.1)',
-                                                border: '1px solid rgba(211, 47, 47, 0.3)'
-                                            }}
-                                        >
-                                            {error}
-                                        </Alert>
-                                    )}
+                                    <ValidationMessages validation={validation} />
 
                                     <Paper 
                                         elevation={4}
@@ -181,7 +175,10 @@ function App() {
                                                 assets={assets}
                                                 portfolio={portfolio}
                                                 setPortfolio={setPortfolio}
-                                                totalAllocation={portfolio.reduce((sum, asset) => sum + asset.allocation, 0)}
+                                                totalAllocation={portfolio.reduce((sum, asset) => {
+                                                    const allocation = asset.allocation === '' ? 0 : Number(asset.allocation);
+                                                    return sum + allocation;
+                                                }, 0)}
                                             />
                                             <SimulationControls
                                                 initialInvestment={initialInvestment}
@@ -194,6 +191,7 @@ function App() {
                                                 setInvestmentFrequency={setInvestmentFrequency}
                                                 runSimulation={runSimulation}
                                                 isRunningSimulation={isRunningSimulation}
+                                                hasErrors={validation?.errors?.length > 0}
                                             />
                                         </Box>
                                     </Paper>
