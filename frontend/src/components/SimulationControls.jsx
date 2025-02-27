@@ -22,6 +22,21 @@ function SimulationControls({
     runSimulation,
     isRunningSimulation
 }) {
+    const handleNumberInput = (value, setter) => {
+        // Allow any string input including negative sign
+        if (value === '-') {
+            setter(value);
+        } else if (value === '') {
+            setter('');
+        } else {
+            // Only validate if it's a complete number
+            const numValue = Number(value);
+            if (!isNaN(numValue)) {
+                setter(value); // Keep as string to maintain cursor position
+            }
+        }
+    };
+
     return (
         <Card 
             elevation={8}
@@ -61,11 +76,11 @@ function SimulationControls({
                 <Grid item xs={12} sm={6}>
                     <TextField
                         label="Initial Investment ($)"
-                        type="number"
+                        type="text"
                         value={initialInvestment}
-                        onChange={(e) => setInitialInvestment(Number(e.target.value))}
+                        onChange={(e) => handleNumberInput(e.target.value, setInitialInvestment)}
+                        placeholder="Enter amount..."
                         fullWidth
-                        inputProps={{ min: 0, step: 1000 }}
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -83,11 +98,11 @@ function SimulationControls({
                 <Grid item xs={12} sm={6}>
                     <TextField
                         label="Investment Period (Years)"
-                        type="number"
+                        type="text"
                         value={simulationYears}
-                        onChange={(e) => setSimulationYears(Number(e.target.value))}
+                        onChange={(e) => handleNumberInput(e.target.value, setSimulationYears)}
+                        placeholder="Enter years..."
                         fullWidth
-                        inputProps={{ min: 1, max: 30 }}
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -104,12 +119,12 @@ function SimulationControls({
                 </Grid>
                 <Grid item xs={12} sm={6}>
                     <TextField
-                        label="Periodic Investment ($)"
-                        type="number"
+                        label="Periodic Investment/Withdrawal ($)"
+                        type="text"
                         value={periodicInvestment}
-                        onChange={(e) => setPeriodicInvestment(Number(e.target.value))}
+                        onChange={(e) => handleNumberInput(e.target.value, setPeriodicInvestment)}
+                        placeholder="Enter amount (negative for withdrawal)..."
                         fullWidth
-                        inputProps={{ min: 0, step: 100 }}
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',

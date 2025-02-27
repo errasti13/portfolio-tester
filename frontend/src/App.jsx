@@ -37,11 +37,37 @@ function App() {
     const [isRunningSimulation, setIsRunningSimulation] = useState(false);
 
     const runSimulation = async () => {
-        const totalAllocation = portfolio.reduce((sum, asset) => sum + asset.allocation, 0);
+        // Validate inputs and convert to numbers
+        if (initialInvestment === '' || simulationYears === '' || periodicInvestment === '') {
+            setError('Please fill in all investment fields');
+            return;
+        }
+
+        const numInitialInvestment = Number(initialInvestment);
+        const numSimulationYears = Number(simulationYears);
+        const numPeriodicInvestment = Number(periodicInvestment);
+
+        // Validate converted numbers
+        if (isNaN(numInitialInvestment) || isNaN(numSimulationYears) || isNaN(numPeriodicInvestment)) {
+            setError('Please enter valid numbers for all investment fields');
+            return;
+        }
+
+        if (numSimulationYears <= 0) {
+            setError('Investment period must be greater than 0 years');
+            return;
+        }
+
+        const totalAllocation = portfolio.reduce((sum, asset) => {
+            const allocation = asset.allocation === '' ? 0 : Number(asset.allocation);
+            return sum + allocation;
+        }, 0);
+
         if (totalAllocation !== 100) {
             setError('Total allocation must equal 100%');
             return;
         }
+
         if (!Object.keys(portfolioData).length) {
             setError('Waiting for asset data to load...');
             return;
@@ -51,10 +77,13 @@ function App() {
         try {
             const results = await runSimulations(
                 portfolioData,
-                portfolio,
-                simulationYears,
-                initialInvestment,
-                periodicInvestment,
+                portfolio.map(asset => ({
+                    ...asset,
+                    allocation: asset.allocation === '' ? 0 : Number(asset.allocation)
+                })),
+                numSimulationYears,
+                numInitialInvestment,
+                numPeriodicInvestment,
                 investmentFrequency
             );
             setSimulationResults(results);

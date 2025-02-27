@@ -20,11 +20,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation }) {
     const [hoveredIndex, setHoveredIndex] = useState(null);
 
-    const handleAllocationChange = (index, newAllocation) => {
-        const value = Math.max(0, Math.min(100, Number(newAllocation)));
-        const updatedPortfolio = [...portfolio];
-        updatedPortfolio[index].allocation = value;
-        setPortfolio(updatedPortfolio);
+    const handleAllocationChange = (index, value) => {
+        if (value === '') {
+            const updatedPortfolio = [...portfolio];
+            updatedPortfolio[index].allocation = '';
+            setPortfolio(updatedPortfolio);
+        } else {
+            const numValue = Number(value);
+            if (!isNaN(numValue)) {
+                const updatedPortfolio = [...portfolio];
+                updatedPortfolio[index].allocation = numValue;
+                setPortfolio(updatedPortfolio);
+            }
+        }
     };
 
     const addAsset = () => {
@@ -77,12 +85,11 @@ function PortfolioControls({ assets, portfolio, setPortfolio, totalAllocation })
                             </Grid>
                             <Grid item xs={12} sm={4}>
                                 <TextField
-                                    type="number"
+                                    type="text"
                                     value={asset.allocation}
                                     onChange={(e) => handleAllocationChange(index, e.target.value)}
                                     InputProps={{
-                                        endAdornment: '%',
-                                        inputProps: { min: 0, max: 100, step: 5 }
+                                        endAdornment: '%'
                                     }}
                                     size="small"
                                     fullWidth
