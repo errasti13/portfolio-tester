@@ -8,7 +8,10 @@ import {
     Card,
     Typography,
     Box,
+    Tooltip,
+    InputAdornment,
 } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 
 function SimulationControls({
     initialInvestment,
@@ -23,19 +26,49 @@ function SimulationControls({
     isRunningSimulation,
     hasErrors
 }) {
-    const handleNumberInput = (value, setter) => {
-        // Allow any string input including negative sign
-        if (value === '-') {
+    const handleNumberInput = (value, setter, isInteger = false) => {
+        // Handle special cases
+        if (value === '' || value === '-' || (!isInteger && (value === '.' || value === '-.'))) {
             setter(value);
-        } else if (value === '') {
-            setter('');
-        } else {
-            // Only validate if it's a complete number
-            const numValue = Number(value);
-            if (!isNaN(numValue)) {
-                setter(value); // Keep as string to maintain cursor position
-            }
+            return;
         }
+
+        // For integer fields, don't allow decimal points
+        if (isInteger && value.includes('.')) {
+            return;
+        }
+
+        // Validate number format
+        const regex = isInteger ? /^-?\d*$/ : /^-?\d*\.?\d*$/;
+        if (!regex.test(value)) {
+            return;
+        }
+
+        const numValue = Number(value);
+        if (!isNaN(numValue)) {
+            // For currency values, limit to 2 decimal places
+            if (!isInteger && value.includes('.')) {
+                const [whole, decimal] = value.split('.');
+                if (decimal && decimal.length > 2) {
+                    return;
+                }
+            }
+            setter(value);
+        }
+    };
+
+    const formatCurrency = (value) => {
+        if (value === '' || value === '-' || value === '.' || value === '-.') {
+            return value;
+        }
+        const num = Number(value);
+        if (!isNaN(num)) {
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+        return value;
     };
 
     return (
@@ -75,92 +108,123 @@ function SimulationControls({
             </Typography>
             <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Initial Investment ($)"
-                        type="text"
-                        value={initialInvestment}
-                        onChange={(e) => handleNumberInput(e.target.value, setInitialInvestment)}
-                        placeholder="Enter amount..."
-                        fullWidth
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: 2,
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    <Tooltip title="Initial amount to invest in the portfolio" arrow placement="top">
+                        <TextField
+                            label="Initial Investment ($)"
+                            type="text"
+                            value={initialInvestment}
+                            onChange={(e) => handleNumberInput(e.target.value, setInitialInvestment)}
+                            placeholder="Enter amount..."
+                            fullWidth
+                            InputProps={{
+                                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <InfoIcon color="action" fontSize="small" />
+                                    </InputAdornment>
+                                )
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    borderRadius: 2,
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    },
                                 },
-                            },
-                            '& .MuiInputLabel-root': {
-                                color: 'text.secondary',
-                            }
-                        }}
-                    />
+                                '& .MuiInputLabel-root': {
+                                    color: 'text.secondary',
+                                }
+                            }}
+                        />
+                    </Tooltip>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Investment Period (Years)"
-                        type="text"
-                        value={simulationYears}
-                        onChange={(e) => handleNumberInput(e.target.value, setSimulationYears)}
-                        placeholder="Enter years..."
-                        fullWidth
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: 2,
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    <Tooltip title="Number of years to simulate the portfolio performance" arrow placement="top">
+                        <TextField
+                            label="Investment Period (Years)"
+                            type="text"
+                            value={simulationYears}
+                            onChange={(e) => handleNumberInput(e.target.value, setSimulationYears, true)}
+                            placeholder="Enter years..."
+                            fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <InfoIcon color="action" fontSize="small" />
+                                    </InputAdornment>
+                                )
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    borderRadius: 2,
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    },
                                 },
-                            },
-                            '& .MuiInputLabel-root': {
-                                color: 'text.secondary',
-                            }
-                        }}
-                    />
+                                '& .MuiInputLabel-root': {
+                                    color: 'text.secondary',
+                                }
+                            }}
+                        />
+                    </Tooltip>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Periodic Investment/Withdrawal ($)"
-                        type="text"
-                        value={periodicInvestment}
-                        onChange={(e) => handleNumberInput(e.target.value, setPeriodicInvestment)}
-                        placeholder="Enter amount (negative for withdrawal)..."
-                        fullWidth
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: 2,
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    <Tooltip title="Regular investment or withdrawal amount (use negative for withdrawals)" arrow placement="top">
+                        <TextField
+                            label="Periodic Investment/Withdrawal ($)"
+                            type="text"
+                            value={periodicInvestment}
+                            onChange={(e) => handleNumberInput(e.target.value, setPeriodicInvestment)}
+                            placeholder="Enter amount (negative for withdrawal)..."
+                            fullWidth
+                            InputProps={{
+                                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <InfoIcon color="action" fontSize="small" />
+                                    </InputAdornment>
+                                )
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    borderRadius: 2,
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    },
                                 },
-                            },
-                            '& .MuiInputLabel-root': {
-                                color: 'text.secondary',
-                            }
-                        }}
-                    />
+                                '& .MuiInputLabel-root': {
+                                    color: 'text.secondary',
+                                }
+                            }}
+                        />
+                    </Tooltip>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                    <Select
-                        fullWidth
-                        value={investmentFrequency}
-                        onChange={(e) => setInvestmentFrequency(e.target.value)}
-                        sx={{ 
-                            '& .MuiOutlinedInput-root': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: 2,
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    <Tooltip title="Frequency of periodic investments or withdrawals" arrow placement="top">
+                        <Select
+                            fullWidth
+                            value={investmentFrequency}
+                            onChange={(e) => setInvestmentFrequency(e.target.value)}
+                            sx={{ 
+                                '& .MuiOutlinedInput-root': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    borderRadius: 2,
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    },
                                 },
-                            },
-                            '& .MuiInputLabel-root': {
-                                color: 'text.secondary',
-                            }
-                        }}
-                    >
-                        <MenuItem value="monthly">Monthly</MenuItem>
-                        <MenuItem value="yearly">Yearly</MenuItem>
-                    </Select>
+                                '& .MuiInputLabel-root': {
+                                    color: 'text.secondary',
+                                }
+                            }}
+                        >
+                            <MenuItem value="monthly">Monthly</MenuItem>
+                            <MenuItem value="yearly">Yearly</MenuItem>
+                        </Select>
+                    </Tooltip>
                 </Grid>
             </Grid>
             <Box sx={{ mt: 4, textAlign: 'center' }}>

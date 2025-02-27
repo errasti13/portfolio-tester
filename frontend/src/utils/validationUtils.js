@@ -5,6 +5,7 @@ export const validateSimulationInputs = (inputs) => {
         simulationYears,
         periodicInvestment,
         portfolio,
+        investmentFrequency = 'monthly',
         currentPortfolioValue = null // Optional, for comparing with initial investment
     } = inputs;
 
@@ -38,11 +39,11 @@ export const validateSimulationInputs = (inputs) => {
     }
 
     if (numSimulationYears <= 0) {
-        errors.push('Simulation period cannot be negative');
+        errors.push('Simulation period must be greater than 0 years');
     }
 
     if (numSimulationYears > 50) {
-        warnings.push('Long simulation periods (>30 years) may be less accurate');
+        warnings.push('Long simulation periods (>50 years) may be less accurate');
     }
 
     // Portfolio allocation validation

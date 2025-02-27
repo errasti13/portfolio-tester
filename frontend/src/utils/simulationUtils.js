@@ -1,3 +1,6 @@
+// Cache for monthly data conversion
+const monthlyPortfolioDataCache = new Map();
+
 // Convert daily data to monthly data properly
 const convertToMonthlyData = (dailyData) => {
     const monthlyData = [];
@@ -31,15 +34,32 @@ const convertToMonthlyData = (dailyData) => {
     return monthlyData;
 };
 
+// Get monthly data with caching
+const getMonthlyData = (assetId, data) => {
+    if (!monthlyPortfolioDataCache.has(assetId)) {
+        monthlyPortfolioDataCache.set(assetId, convertToMonthlyData(data));
+    }
+    return monthlyPortfolioDataCache.get(assetId);
+};
+
+// Clear cache when it gets too large
+const clearCacheIfNeeded = () => {
+    if (monthlyPortfolioDataCache.size > 100) {
+        monthlyPortfolioDataCache.clear();
+    }
+};
+
 export const runSimulations = (portfolioData, portfolio, years, initialInvestment, periodicInvestment = 0, frequency = 'monthly') => {
     if (!portfolioData || Object.keys(portfolioData).length === 0) {
         throw new Error('Invalid portfolio data');
     }
 
+    clearCacheIfNeeded();
+
     // Convert daily data to monthly for each asset
     const monthlyPortfolioData = {};
     Object.entries(portfolioData).forEach(([assetId, data]) => {
-        monthlyPortfolioData[assetId] = convertToMonthlyData(data);
+        monthlyPortfolioData[assetId] = getMonthlyData(assetId, data);
     });
 
     const monthsPerYear = 12;
@@ -57,7 +77,7 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
         return returns;
     };
 
-    // Calculate returns for each asset
+    // Calculate returns for each asset with caching
     const assetReturns = {};
     Object.entries(monthlyPortfolioData).forEach(([assetId, data]) => {
         assetReturns[assetId] = calculateMonthlyReturns(data);
@@ -69,12 +89,14 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
     }
 
     const simulations = [];
+    const SMALL_VALUE_THRESHOLD = 0.01;
 
     for (let i = 0; i < numSimulations; i++) {
         try {
             const startIdx = Math.floor(Math.random() * (minDataPoints - simulationLength));
             let value = initialInvestment;
             let totalInvested = initialInvestment;
+            let isPortfolioActive = true;
             const valueHistory = [{ 
                 date: monthlyPortfolioData[portfolio[0].assetId][startIdx].date,
                 value 
@@ -87,31 +109,34 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
             }];
 
             for (let month = 0; month < simulationLength; month++) {
-                // Calculate weighted portfolio return
-                const monthlyReturn = portfolio.reduce((sum, asset) => {
-                    const assetMonthlyReturn = assetReturns[asset.assetId][startIdx + month];
-                    return sum + (assetMonthlyReturn * (asset.allocation / 100));
-                }, 0);
+                if (isPortfolioActive) {
+                    // Calculate weighted portfolio return
+                    const monthlyReturn = portfolio.reduce((sum, asset) => {
+                        const assetMonthlyReturn = assetReturns[asset.assetId][startIdx + month];
+                        return sum + (assetMonthlyReturn * (asset.allocation / 100));
+                    }, 0);
 
-                // Apply return to current value
-                value *= (1 + monthlyReturn);
+                    // Apply return to current value
+                    value *= (1 + monthlyReturn);
 
-                // Handle periodic investment or withdrawal
-                if (month % investmentInterval === 0) {
-                    value += periodicInvestment;
-                    // Only add positive investments to totalInvested
-                    if (periodicInvestment > 0) {
-                        totalInvested += periodicInvestment;
-                        investments.push({
-                            amount: periodicInvestment,
-                            monthsInvested: simulationLength - month
-                        });
+                    // Handle periodic investment or withdrawal
+                    if (month % investmentInterval === 0) {
+                        value += periodicInvestment;
+                        // Only add positive investments to totalInvested
+                        if (periodicInvestment > 0) {
+                            totalInvested += periodicInvestment;
+                            investments.push({
+                                amount: periodicInvestment,
+                                monthsInvested: simulationLength - month
+                            });
+                        }
                     }
-                }
 
-                // Ensure value does not go negative
-                if (value < 0) {
-                    value = 0;
+                    // Check for small value threshold
+                    if (value < SMALL_VALUE_THRESHOLD) {
+                        value = 0;
+                        isPortfolioActive = false;
+                    }
                 }
 
                 valueHistory.push({
@@ -121,8 +146,7 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
             }
 
             // Fix return calculations
-            // For withdrawals, we still want to show the actual return on the invested amount
-            let totalReturn = (value / totalInvested - 1);
+            let totalReturn = totalInvested > 0 ? (value / totalInvested - 1) : -1;
             let annualizedReturn = Math.pow(1 + totalReturn, 1 / years) - 1;
 
             // Convert to percentages with 2 decimal places
@@ -139,7 +163,8 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
                 data: valueHistory,
                 startDate: new Date(valueHistory[0].date),
                 endDate: new Date(valueHistory[valueHistory.length - 1].date),
-                maxDrawdown: calculateMaxDrawdown(valueHistory)
+                maxDrawdown: calculateMaxDrawdown(valueHistory),
+                portfolioDepletionMonth: isPortfolioActive ? null : valueHistory.findIndex(vh => vh.value === 0)
             });
         } catch (error) {
             console.error('Simulation error:', error);
@@ -152,10 +177,17 @@ export const runSimulations = (portfolioData, portfolio, years, initialInvestmen
     }
 
     simulations.sort((a, b) => b.return - a.return);
+    
+    // Calculate additional statistics
+    const medianIndex = Math.floor(simulations.length / 2);
+    const successRate = (simulations.filter(s => s.finalValue > 0).length / simulations.length) * 100;
+
     return {
         best: simulations[0],
         worst: simulations[simulations.length - 1],
-        median: simulations[Math.floor(simulations.length / 2)]
+        median: simulations[medianIndex],
+        successRate,
+        totalSimulations: simulations.length
     };
 };
 
@@ -168,9 +200,9 @@ const calculateMaxDrawdown = (valueHistory) => {
         if (day.value > peak) {
             peak = day.value;
         }
-        const drawdown = ((peak - day.value) / peak) * 100;
+        const drawdown = peak > 0 ? ((peak - day.value) / peak) * 100 : 0;
         maxDrawdown = Math.max(maxDrawdown, drawdown);
     }
 
-    return maxDrawdown;
+    return parseFloat(maxDrawdown.toFixed(2));
 };

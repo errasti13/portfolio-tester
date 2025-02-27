@@ -1,10 +1,9 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Card, Typography, Box, Grid, Paper } from '@mui/material';
+import { Card, Typography, Box, Grid, Paper, Divider } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 
 const EnhancedChart = ({ simulationResults }) => {
     if (!simulationResults) return null;
-
-    console.log('Simulation Results:', simulationResults);
 
     const prepareChartData = () => {
         const bestCase = simulationResults.best?.data || [];
@@ -21,7 +20,6 @@ const EnhancedChart = ({ simulationResults }) => {
 
     const data = prepareChartData();
     const yearlyTicks = data.filter(d => d.monthIndex % 12 === 0).map(d => d.monthIndex);
-    console.log('Prepared Chart Data:', data);
 
     const formatYAxis = (value) => {
         if (value >= 1000000) {
@@ -36,16 +34,92 @@ const EnhancedChart = ({ simulationResults }) => {
         return `$${value.toLocaleString()}`;
     };
 
+    const renderScenarioCard = (scenario, title, color) => (
+        <Grid item xs={12} md={4}>
+            <Paper 
+                sx={{ 
+                    p: 3, 
+                    height: '100%',
+                    bgcolor: '#2a2a2a', 
+                    borderLeft: `4px solid ${color}`,
+                    borderRadius: '4px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5
+                }}
+            >
+                <Typography variant="h6" sx={{ color, mb: 1, fontWeight: 'bold' }}>
+                    {title}
+                </Typography>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">Final Portfolio Value</Typography>
+                    <Typography variant="h6" sx={{ color: '#fff' }}>
+                        ${scenario.finalValue?.toLocaleString()}
+                    </Typography>
+                </Box>
+
+                <Divider sx={{ my: 1, bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Total Return</Typography>
+                    <Typography sx={{ color: scenario.return >= 0 ? '#4caf50' : '#f44336' }}>
+                        {scenario.return?.toFixed(2)}%
+                    </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Annualized Return</Typography>
+                    <Typography sx={{ color: scenario.annualizedReturn >= 0 ? '#4caf50' : '#f44336' }}>
+                        {scenario.annualizedReturn?.toFixed(2)}%
+                    </Typography>
+                </Box>
+
+                <Divider sx={{ my: 1, bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Total Invested</Typography>
+                    <Typography>${scenario.totalInvested?.toLocaleString()}</Typography>
+                </Box>
+
+                {scenario.totalWithdrawn > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">Total Withdrawn</Typography>
+                        <Typography>${scenario.totalWithdrawn?.toLocaleString()}</Typography>
+                    </Box>
+                )}
+
+                {scenario.portfolioDepletionMonth && (
+                    <Box 
+                        sx={{ 
+                            mt: 'auto',
+                            p: 1.5, 
+                            bgcolor: 'rgba(244, 67, 54, 0.1)', 
+                            borderRadius: 1,
+                            border: '1px solid rgba(244, 67, 54, 0.3)'
+                        }}
+                    >
+                        <Typography color="error" variant="body2">
+                            Portfolio depleted in year {Math.floor(scenario.portfolioDepletionMonth / 12)}
+                        </Typography>
+                    </Box>
+                )}
+            </Paper>
+        </Grid>
+    );
+
     return (
         <Card sx={{ p: 3, borderRadius: 2, boxShadow: 4, bgcolor: '#1e1e1e', color: '#ffffff' }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff' }}>
-                Portfolio Simulation
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#ffffff', mb: 3 }}>
+                Portfolio Simulation Results
             </Typography>
-            <Box sx={{ width: '100%', height: 400 }}>
+
+            {/* Chart */}
+            <Box sx={{ width: '100%', height: 400, mb: 4 }}>
                 <ResponsiveContainer>
                     <LineChart
                         data={data}
-                        margin={{ top: 5, right: 30, left: 40, bottom: 20 }}  // Increased bottom margin
+                        margin={{ top: 5, right: 30, left: 40, bottom: 20 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                         <XAxis 
@@ -56,11 +130,11 @@ const EnhancedChart = ({ simulationResults }) => {
                             label={{ 
                                 value: 'Years', 
                                 position: 'insideBottom', 
-                                offset: -10,  // Adjusted offset
+                                offset: -10,
                                 fill: '#ffffff',
-                                dy: 10  // Move label down
+                                dy: 10
                             }}
-                            tick={{ fill: '#ffffff', dy: 5 }}  // Move ticks down
+                            tick={{ fill: '#ffffff', dy: 5 }}
                         />
                         <YAxis 
                             tickFormatter={formatYAxis}
@@ -68,7 +142,7 @@ const EnhancedChart = ({ simulationResults }) => {
                                 value: 'Portfolio Value', 
                                 angle: -90, 
                                 position: 'insideLeft',
-                                offset: -30,  // Add offset to move label away from ticks
+                                offset: -30,
                                 fill: '#ffffff' 
                             }}
                             tick={{ fill: '#ffffff' }}
@@ -81,7 +155,7 @@ const EnhancedChart = ({ simulationResults }) => {
                         <Legend 
                             wrapperStyle={{ color: '#ffffff' }}
                             verticalAlign="top"
-                            height={36}  // Add height to create space
+                            height={36}
                         />
                         <Line 
                             type="monotone" 
@@ -108,64 +182,21 @@ const EnhancedChart = ({ simulationResults }) => {
                 </ResponsiveContainer>
             </Box>
 
-            {/* Simulation Results Section */}
-            <Paper sx={{ mt: 3, p: 2, bgcolor: '#2a2a2a', color: '#ffffff' }}>
-                <Typography variant="h6" gutterBottom>
-                    Simulation Results
-                </Typography>
-                <Grid container spacing={2}>
-                    {simulationResults?.best && (
-                        <Grid item xs={12} sm={4}>
-                            <Typography variant="subtitle1" sx={{ color: '#4CAF50', mb: 1 }}>Best Case</Typography>
-                            <Typography>Total Return: {simulationResults.best.return?.toFixed(2)}%</Typography>
-                            <Typography>Annualized Return: {simulationResults.best.annualizedReturn?.toFixed(2)}%</Typography>
-                            <Typography>Final Value: ${simulationResults.best.finalValue?.toLocaleString()}</Typography>
-                            <Typography>Total Invested: ${simulationResults.best.totalInvested?.toLocaleString()}</Typography>
-                            {simulationResults.best.totalWithdrawn > 0 && (
-                                <Typography>Total Withdrawn: ${simulationResults.best.totalWithdrawn?.toLocaleString()}</Typography>
-                            )}
-                        </Grid>
-                    )}
-                    {simulationResults?.median && (
-                        <Grid item xs={12} sm={4}>
-                            <Typography variant="subtitle1" sx={{ color: '#2196F3', mb: 1 }}>Median Case</Typography>
-                            <Typography>Total Return: {simulationResults.median.return?.toFixed(2)}%</Typography>
-                            <Typography>Annualized Return: {simulationResults.median.annualizedReturn?.toFixed(2)}%</Typography>
-                            <Typography>Final Value: ${simulationResults.median.finalValue?.toLocaleString()}</Typography>
-                            <Typography>Total Invested: ${simulationResults.median.totalInvested?.toLocaleString()}</Typography>
-                            {simulationResults.median.totalWithdrawn > 0 && (
-                                <Typography>Total Withdrawn: ${simulationResults.median.totalWithdrawn?.toLocaleString()}</Typography>
-                            )}
-                        </Grid>
-                    )}
-                    {simulationResults?.worst && (
-                        <Grid item xs={12} sm={4}>
-                            <Typography variant="subtitle1" sx={{ color: '#F44336', mb: 1 }}>Worst Case</Typography>
-                            <Typography>Total Return: {simulationResults.worst.return?.toFixed(2)}%</Typography>
-                            <Typography>Annualized Return: {simulationResults.worst.annualizedReturn?.toFixed(2)}%</Typography>
-                            <Typography>Final Value: ${simulationResults.worst.finalValue?.toLocaleString()}</Typography>
-                            <Typography>Total Invested: ${simulationResults.worst.totalInvested?.toLocaleString()}</Typography>
-                            {simulationResults.worst.totalWithdrawn > 0 && (
-                                <Typography>Total Withdrawn: ${simulationResults.worst.totalWithdrawn?.toLocaleString()}</Typography>
-                            )}
-                        </Grid>
-                    )}
-                </Grid>
-                {simulationResults?.worst?.finalValue < 0 && (
-                    <Typography 
-                        color="error" 
-                        sx={{ 
-                            mt: 2, 
-                            p: 2, 
-                            bgcolor: 'rgba(244, 67, 54, 0.1)', 
-                            borderRadius: 1,
-                            border: '1px solid rgba(244, 67, 54, 0.3)'
-                        }}
-                    >
-                        Warning: In some scenarios, the withdrawal rate may deplete the portfolio.
+            {/* Scenario Cards */}
+            <Grid container spacing={3}>
+                {simulationResults?.best && renderScenarioCard(simulationResults.best, 'Best Case Scenario', '#4CAF50')}
+                {simulationResults?.median && renderScenarioCard(simulationResults.median, 'Median Case Scenario', '#2196F3')}
+                {simulationResults?.worst && renderScenarioCard(simulationResults.worst, 'Worst Case Scenario', '#F44336')}
+            </Grid>
+
+            {simulationResults.successRate < 100 && (
+                <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(244, 67, 54, 0.1)', borderRadius: 1 }}>
+                    <Typography color="error">
+                        Warning: In {(100 - simulationResults.successRate).toFixed(1)}% of simulations, 
+                        the portfolio was depleted before the end of the simulation period.
                     </Typography>
-                )}
-            </Paper>
+                </Box>
+            )}
         </Card>
     );
 };
