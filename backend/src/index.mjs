@@ -3,9 +3,14 @@ import cors from "cors";
 import dotenv from "dotenv";
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
+const FRONTEND_DIR = path.join(__dirname, '../../frontend/dist');
 const DATA_DIR = path.join("/mnt/c/Users/Jon/Desktop/Jon Errasti/Personal_Projects/portfolio-tester/backend", "data");
 
 const ASSETS = {
@@ -145,11 +150,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: true,
     methods: ['GET'],
     credentials: true
 }));
 app.use(express.json());
+
+// Serve static files from the frontend build directory
+app.use(express.static(FRONTEND_DIR));
 
 // Assets endpoint
 app.get("/api/assets", async (req, res) => {
@@ -205,6 +213,11 @@ app.get("/api/asset/:assetId/returns", async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ error: error.message || `Error fetching ${req.params.assetId} returns` });
     }
+});
+
+// Add this at the end, after all other routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(FRONTEND_DIR, 'index.html'));
 });
 
 app.use((err, req, res, next) => {
