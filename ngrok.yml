@@ -1,0 +1,9 @@
+version: "2"
+authtoken: 2tgJUlLZl0IYlg2R0xZ3zdvqR3I_5m4vH6qqgVuavBJx1WnVx  # Replace this with your actual authtoken from https://dashboard.ngrok.com/get-started/your-authtoken
+tunnels:
+  app:
+    addr: 3000  # or whatever port serve is using
+    proto: http
+  api:
+    addr: 5000
+    proto: http 
