@@ -159,12 +159,14 @@ const corsOptions = {
         const allowedOrigins = [
             'http://localhost:3000',
             'http://127.0.0.1:3000',
+            'http://192.168.1.134:3000',  // Local network access
             'https://errasti13.github.io', // Replace with your GitHub username
             /\.github\.io$/,  // Any GitHub Pages domain
             /\.vercel\.app$/,  // Vercel deployments
             /\.netlify\.app$/, // Netlify deployments
             /\.railway\.app$/, // Railway deployments
-            /\.loca\.lt$/      // Localtunnel for development
+            /\.loca\.lt$/,     // Localtunnel for development
+            /^http:\/\/192\.168\.1\.\d+:3000$/  // Allow any device on local network
         ];
         
         // Check if origin is allowed
@@ -270,6 +272,9 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} and accessible from:`);
+    console.log(`  Local:    http://localhost:${PORT}`);
+    console.log(`  Network:  http://192.168.1.134:${PORT}`);
+    console.log(`  Frontend: https://errasti13.github.io/portfolio-tester`);
 });
