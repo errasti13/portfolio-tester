@@ -10,6 +10,12 @@
     "start": "npm run start --workspace=backend",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
-    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend"
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
+    "dev:with-ngrok": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run ngrok:start\"",
+    "ngrok:start": "sleep 5 && ngrok start --all --config ngrok.yml",
+    "start:all": "npm run dev:with-ngrok"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
