@@ -11,11 +11,10 @@ const getApiBaseUrl = () => {
         return import.meta.env.VITE_API_URL;
     }
     
-    // If deployed on GitHub Pages (or similar static hosting)
+    // If deployed on GitHub Pages - use localhost backend for easy development
     if (hostname.includes('github.io') || hostname.includes('pages.dev') || hostname.includes('netlify.app') || hostname.includes('vercel.app')) {
-        // Default production backend URL - will be updated once backend is deployed
-        console.log('Detected static hosting platform, using production API');
-        return 'https://portfolio-backend-production.up.railway.app/api';
+        console.log('Detected static hosting platform, using localhost API (make sure your backend is running locally!)');
+        return 'http://localhost:5000/api';
     }
     
     // If using localtunnel domains (development)
@@ -65,6 +64,12 @@ class ApiService {
             return response.json();
         } catch (error) {
             console.error('API request failed:', error);
+            
+            // If we're on GitHub Pages and can't reach localhost, show helpful message
+            if (window.location.hostname.includes('github.io') && error instanceof TypeError) {
+                throw new Error('Backend not running! Please start your backend server locally with: cd backend && npm start');
+            }
+            
             if (error instanceof Error) {
                 throw error;
             }
