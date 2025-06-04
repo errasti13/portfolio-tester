@@ -2,20 +2,30 @@
 
 A professional web application that simulates historical investment scenarios across multiple asset classes including S&P 500, MSCI World, Gold, Silver, and more.
 
+<!-- GitHub Pages Status: Updated to trigger new build -->
+
 ## 🚀 **NEW: Free Hosting Available!**
 
 Deploy your portfolio **completely FREE** using GitHub Pages + Railway. No credit card required!
 
+## ✅ **Your Backend is Working!**
+✅ Backend API is running successfully  
+✅ Ubuntu/WSL setup completed  
+✅ All data endpoints responding perfectly  
+
 ### Quick Deploy (5 minutes):
 ```bash
+# Ubuntu/WSL (Recommended)
+chmod +x setup-ubuntu.sh start-ubuntu.sh
+./setup-ubuntu.sh
+./start-ubuntu.sh
+
 # Windows
 .\deploy.ps1
-
-# Mac/Linux  
-chmod +x deploy.sh && ./deploy.sh
 ```
 
-**📖 [Full Deployment Guide](DEPLOYMENT_GUIDE.md)**
+**📖 [Full Deployment Guide](DEPLOYMENT_GUIDE.md)**  
+**🐧 [Ubuntu/WSL Guide](UBUNTU_SETUP.md)**
 
 ---
 
@@ -129,7 +139,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 🎯 Ready to Deploy?
+## �� Ready to Deploy?
 
 **Start with the free hosting option:**
 
