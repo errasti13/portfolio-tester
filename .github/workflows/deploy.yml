@@ -26,17 +26,16 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
         
     - name: Install dependencies
       run: |
         cd frontend
-        npm ci
+        npm install
         
     - name: Build
       run: |
         cd frontend
+        # Set the API URL for production build - using local backend option
         echo "VITE_API_URL=http://localhost:5000/api" > .env.production
         npm run build
         
