@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -37,6 +37,7 @@ jobs:
     - name: Build
       run: |
         cd frontend
+        echo "VITE_API_URL=https://portfolio-backend-production.up.railway.app/api" > .env.production
         npm run build
         
     - name: Setup Pages

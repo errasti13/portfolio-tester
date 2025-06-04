@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const FRONTEND_DIR = path.join(__dirname, '../../frontend/dist');
-const DATA_DIR = path.join("/mnt/c/Users/Jon/Desktop/Jon Errasti/Personal_Projects/portfolio-tester/backend", "data");
+const DATA_DIR = path.join(__dirname, "../data");
 
 const ASSETS = {
     'SP500': {
@@ -149,12 +149,47 @@ const getAssetReturns = async (csvFile) => {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+// CORS configuration to support multiple deployment platforms
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // List of allowed origins
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'https://errasti13.github.io', // Replace with your GitHub username
+            /\.github\.io$/,  // Any GitHub Pages domain
+            /\.vercel\.app$/,  // Vercel deployments
+            /\.netlify\.app$/, // Netlify deployments
+            /\.railway\.app$/, // Railway deployments
+            /\.loca\.lt$/      // Localtunnel for development
+        ];
+        
+        // Check if origin is allowed
+        const isAllowed = allowedOrigins.some(allowedOrigin => {
+            if (typeof allowedOrigin === 'string') {
+                return origin === allowedOrigin;
+            } else if (allowedOrigin instanceof RegExp) {
+                return allowedOrigin.test(origin);
+            }
+            return false;
+        });
+        
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static files from the frontend build directory

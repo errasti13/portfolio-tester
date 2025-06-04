@@ -1,28 +1,38 @@
 import { Asset, PortfolioAsset } from '../types';
 
-// Auto-detect if we're using localtunnel and adjust API URL accordingly
+// Auto-detect if we're using different hosting platforms and adjust API URL accordingly
 const getApiBaseUrl = () => {
     const hostname = window.location.hostname;
     const port = window.location.port;
     
-    // If deployed on GitHub Pages (or similar static hosting)
-    if (hostname.includes('github.io') || hostname.includes('pages.dev') || hostname.includes('netlify.app') || hostname.includes('vercel.app')) {
-        // Use your deployed backend API URL here
-        // For example: return 'https://your-backend.railway.app/api';
-        return import.meta.env.VITE_API_URL || 'https://portfolio-api.loca.lt/api';
+    // Check for environment variable first (most reliable for production)
+    if (import.meta.env.VITE_API_URL) {
+        console.log('Using VITE_API_URL:', import.meta.env.VITE_API_URL);
+        return import.meta.env.VITE_API_URL;
     }
     
-    // If using localtunnel domains
+    // If deployed on GitHub Pages (or similar static hosting)
+    if (hostname.includes('github.io') || hostname.includes('pages.dev') || hostname.includes('netlify.app') || hostname.includes('vercel.app')) {
+        // Default production backend URL - will be updated once backend is deployed
+        console.log('Detected static hosting platform, using production API');
+        return 'https://portfolio-backend-production.up.railway.app/api';
+    }
+    
+    // If using localtunnel domains (development)
     if (hostname.includes('loca.lt')) {
+        console.log('Detected localtunnel, using localtunnel API');
         return 'https://portfolio-api.loca.lt/api';
     }
     
-    // If on localhost (ports 3000 or 3001), use local backend
+    // If on localhost (development), use local backend
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        console.log('Detected localhost, using local API');
         return 'http://localhost:5000/api';
     }
     
-    return import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    // Fallback to local development
+    console.log('Using fallback local API');
+    return 'http://localhost:5000/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -31,20 +41,35 @@ class ApiService {
     private static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
         console.log(`Making API request to: ${API_BASE_URL}${endpoint}`); // Debug log
         
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-        });
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers,
+                },
+            });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'An error occurred');
+            if (!response.ok) {
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const error = await response.json();
+                    errorMessage = error.message || errorMessage;
+                } catch (e) {
+                    // If response is not JSON, use the status text
+                    errorMessage = response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            return response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('An unexpected error occurred');
         }
-
-        return response.json();
     }
 
     public static async getAssets(): Promise<Asset[]> {
