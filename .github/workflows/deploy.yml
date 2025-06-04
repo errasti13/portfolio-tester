@@ -38,6 +38,8 @@ jobs:
         # Set the API URL for production build - using local backend option
         echo "VITE_API_URL=http://localhost:5000/api" > .env.production
         npm run build
+        # Copy 404.html to dist for SPA routing
+        cp public/404.html dist/404.html
         
     - name: Setup Pages
       uses: actions/configure-pages@v4
